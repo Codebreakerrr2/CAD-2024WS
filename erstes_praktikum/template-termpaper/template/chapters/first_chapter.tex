@@ -1,0 +1,33 @@
+% !TEX root = ../termpaper.tex
+% first example section
+% @author Thomas Lehmann
+%
+
+\section{Einleitung}
+In dieser Arbeit untersuchen wir einen Graphen mit n Knoten, bei dem jeder Knoten mit einer Wahrscheinlichkeit p mit jedem anderen Knoten verbunden ist. Zu Beginn wird für beliebige Werte von p und 
+n die minimale Distanz zwischen allen Knotenpaaren ermittelt und eine statistische Auswertung vorgenommen. Im Anschluss erfolgt eine Analyse der Erwartungen, wie sich die statistischen Ergebnisse in Abhängigkeit von verschiedenen Werten für p und n darstellen. Schließlich werden die Ergebnisse visualisiert und interpretiert.
+
+
+\section{Mein Ansatz und Vorüberlegungen}
+
+Die statistische Analyse der minimalen Distanzen zwischen Knotenpaaren ist nur dann vollständig aussagekräftig, wenn der betrachtete Graph zusammenhängend ist. Da der Graph jedoch zufällig generiert wird und Knotenpaare nur mit der Wahrscheinlichkeit \( p \) verbunden sind, kann es vorkommen, dass er in mehrere unverbundene Komponenten zerfällt. In solchen Fällen wäre es sinnvoll, die statistische Auswertung für jede zusammenhängende Komponente separat durchzuführen, da zwischen Knoten in unterschiedlichen Komponenten keine Distanz existiert.
+
+Da jedoch keine explizite Anforderung für die Anzahl der Komponenten gegeben ist, werde ich den Graphen so generieren, dass er als Ganzes zusammenhängend ist und somit eine globale statistische Auswertung ermöglicht. Dazu habe ich mir folgende Ansätze überlegt:
+
+\begin{itemize}
+    \item Ein iterativer Ansatz besteht darin, den Graphen zu erzeugen und anschließend zu überprüfen, ob er zusammenhängend ist. Falls dies nicht der Fall ist, wird ein neuer Graph generiert, bis ein zusammenhängender Graph erreicht wird.
+    \item Alternativ kann die Wahrscheinlichkeit \( p \) erhöht werden, um die Chance auf einen zusammenhängenden Graphen zu steigern. Dies bietet jedoch keine absolute Garantie für Zusammenhängendheit. Ebenso erhöht eine größere Anzahl an Knoten die Wahrscheinlichkeit für einen zusammenhängenden Graphen, bleibt jedoch ebenfalls ohne Garantie.
+\end{itemize}
+
+In diesem Experiment werde ich den iterativen Ansatz verwenden, da er sicherstellt, dass der generierte Graph zusammenhängend ist.
+
+\subsection{Erwartungen}
+
+Für dieses Experiment erwarte ich folgende Beobachtungen:
+
+\begin{itemize}
+    \item Bei einer niedrigen Wahrscheinlichkeit \( p \) (unter 1\%) wird die Wahrscheinlichkeit eines zusammenhängenden Graphen sehr gering sein.
+    \item Bei konstantem \( n \) und zunehmendem \( p \): Der Mittelwert der Distanzen wird gegen \( 1 \) konvergieren, und die Standardabweichung wird abnehmen.
+    \item Bei konstantem \( p \) und zunehmendem \( n \): Der Mittelwert der Distanzen wird sinken, und die Standardabweichung wird tendenziell sinken.
+\end{itemize}
+
