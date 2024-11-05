@@ -75,6 +75,9 @@ def plot_results(results, n_values, p_values):
     plt.legend()
     plt.grid()
     plt.show()
+    plt.savefig('MittelwerteDistanzen.png')
+    plt.savefig('MittelwerteDistanzen.svg')
+    plt.savefig('MittelwerteDistanzen.jpg')
 
     # Erstelle das Diagramm für die Standardabweichungen
     plt.figure(figsize=(24, 12))
@@ -88,6 +91,9 @@ def plot_results(results, n_values, p_values):
     plt.legend()
     plt.grid()
     plt.show()
+    plt.savefig('Standardabweichungen.png')
+    plt.savefig('Standardabweichungen.svg')
+    plt.savefig('Standardabweichungen.jpg')
 
 
 # Definiere Werte für n und p
