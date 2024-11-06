@@ -1,3 +1,6 @@
 networkx
 matplotlib
 numpy
+scipy
+pandas
+seaborn
