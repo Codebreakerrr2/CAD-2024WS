@@ -7,18 +7,25 @@ from random import choice
 from scipy.stats import spearmanr
 import pandas as pd
 import seaborn as sns
-
+from matplotlib.ticker import FuncFormatter
 
 def connected_graph_with_n_p(n, p):
     g = nx.erdos_renyi_graph(n, p)
 
     # takes very long for big n
-    while not nx.is_connected(g):
-        g = nx.erdos_renyi_graph(n, p)
+    #while not nx.is_connected(g):
+    #    g = nx.erdos_renyi_graph(n, p)
     return g
 
 def random_walk(graph,s):
     n = choice(list(graph.nodes))
+
+    #cc = nx.connected_components(graph)
+    #largest_cc = max(cc, key=len)
+
+    #while not len(graph.adj[n])>0:
+    #    n = choice(list(graph.nodes))
+
 
     #prefilled dict for later comparison as nx.*centrality dictionaries are complete
     visits = dict.fromkeys(range(0,len(graph.nodes),1),0)
@@ -29,7 +36,12 @@ def random_walk(graph,s):
             visits[n] = 1
         else:
             visits[n] = visits[n]+1
-        n = choice(list(graph.adj[n]))
+
+        # random walk in place if necessary
+        if len(list(graph.adj[n]))==0:
+            break
+        else:
+            n = choice(list(graph.adj[n]))
     #list_of_visits = list(visits.items()) #reverse with dict(list_of_visits)
     return visits
 
@@ -97,17 +109,30 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
     return results
 
 def plot_results(results, n_values, p_values, s_formula):
+
+
+    #TODO: Handle multiple n_values
+    n = n_values[0]
+
+    #TODO: express steps in walk as a factor of n (fixed list maybe)
+
     sns.set_theme()
     df = pd.DataFrame(results)
     
+
     #columns_to_plot = ['p', 's', 'visited_percent']
 
     df_pivoted = pd.pivot_table(df, index='s', columns='p', values='visited_percent')
     
     f, ax = plt.subplots(figsize=(20, 10))
     sns_ax = sns.heatmap(df_pivoted, annot=True, fmt=".2f", linewidths=.5, ax=ax)
-    sns_ax.set(xlabel ="probability", ylabel = "Steps in Walk", title ="Random Walk - Node Coverage % - {str(n)} Nodes in Graph ")
-    plt.savefig('heatmap.jpg')
+    sns_ax.set(xlabel ="probability", ylabel = "Steps in Walk", title =f"Random Walk - Node Coverage % - {str(n)} Nodes in Graph ")
+    #ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:.2f}'.format(x) ))
+    #ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: np.format_float_positional(x/100, unique=False, precision=3) ))
+    #ax.xaxis.set_major_formatter(FuncFormatter(lambda x,pos: np.round(x,3) ))
+    #ax.xaxis.set_major_formatter(FuncFormatter(lambda x,pos: str(x) ) )
+    
+    plt.savefig('heatmap_unconnected.jpg')
 
 
 # def plot_results(results, n_values, p_values):
@@ -155,7 +180,13 @@ def plot_results(results, n_values, p_values, s_formula):
 # Definiere Werte für n und p
 n_values = list(range(50, 1000, 100))  # Anzahl der Knoten von 50 bis 1000 in Schritten von 50
 n_values = [1000]
-p_values = [i /20.0 for i in range(1, 21)]  # Werte von 0.1 bis 1.0 in Schritten von 0.1
+
+#p_values = [i /20.0 for i in range(1, 21)]  # Werte von 0.1 bis 1.0 in Schritten von 0.1
+p_values = np.linspace(0,0.03,20,endpoint=True).tolist()
+#p_values = np.arange(0.0, 0.05, (0.05-0)/20).tolist()
+
+p_values = [round(x,3) for x in p_values] #rounding to fix ouput formatter
+
 #s_formula = lambda n: n * 1000
 s_formula = lambda n: discrete_log_scale(n,n*10,10)
 
