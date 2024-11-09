@@ -39,8 +39,7 @@ def random_walk(graph,s):
 
         # random walk in place if necessary
         if len(list(graph.adj[n]))==0:
-            n=n
-            #break
+            break
         else:
             n = choice(list(graph.adj[n]))
     #list_of_visits = list(visits.items()) #reverse with dict(list_of_visits)
@@ -101,6 +100,8 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
                     #'visits': visits,
                     'visited_count': visited_count,
                     'visited_percent': visited_percent,
+                    's/n': round(s/n,2),
+
                     
                 })
                 print(
@@ -109,13 +110,13 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
 
     return results
 
-def plot_results(results, n_values, p_values, s_formula):
+def plot_results(results, n_values, p_values, s_formula, graph_name):
 
 
-    #TODO: Handle multiple n_values
+    #TODO: Handle multiple n_values - maybe handle them outside - 
     n = n_values[0]
 
-    #TODO: express steps in walk as a factor of n (fixed list maybe)
+    #TODO: express steps in walk as a factor of n (fixed list maybe) - in results precomputed
 
     sns.set_theme()
     df = pd.DataFrame(results)
@@ -123,19 +124,18 @@ def plot_results(results, n_values, p_values, s_formula):
 
     #columns_to_plot = ['p', 's', 'visited_percent']
 
-    df_pivoted = pd.pivot_table(df, index='s', columns='p', values='visited_percent')
+    df_pivoted = pd.pivot_table(df, index='s/n', columns='n', values='visited_percent')
     
     f, ax = plt.subplots(figsize=(20, 10))
     sns_ax = sns.heatmap(df_pivoted, annot=True, fmt=".2f", linewidths=.5, ax=ax)
     sns_ax.set(xlabel ="probability", ylabel = "Steps in Walk", title =f"Random Walk - Node Coverage % - {str(n)} Nodes in Graph ")
-    #https://matplotlib.org/3.1.1/gallery/ticks_and_spines/tick-formatters.html
-    # does not work
+
     #ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:.2f}'.format(x) ))
     #ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: np.format_float_positional(x/100, unique=False, precision=3) ))
     #ax.xaxis.set_major_formatter(FuncFormatter(lambda x,pos: np.round(x,3) ))
     #ax.xaxis.set_major_formatter(FuncFormatter(lambda x,pos: str(x) ) )
     
-    plt.savefig("heatmap_unconnected_{str(n)}.jpg")
+    plt.savefig('heatmap_unconnected.jpg')
 
 
 # def plot_results(results, n_values, p_values):
@@ -185,7 +185,7 @@ n_values = list(range(50, 1000, 100))  # Anzahl der Knoten von 50 bis 1000 in Sc
 n_values = [1000]
 
 #p_values = [i /20.0 for i in range(1, 21)]  # Werte von 0.1 bis 1.0 in Schritten von 0.1
-p_values = np.linspace(0,0.01,10,endpoint=True).tolist()
+p_values = np.linspace(0,0.01,20,endpoint=True).tolist()
 #p_values = np.arange(0.0, 0.05, (0.05-0)/20).tolist()
 
 p_values = [round(x,3) for x in p_values] #rounding to fix ouput formatter
