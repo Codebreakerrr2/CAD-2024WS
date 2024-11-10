@@ -194,7 +194,8 @@ n_values = discrete_log_scale(100,1000,5)
 
 #p_values = [i /20.0 for i in range(1, 21)]  # Werte von 0.1 bis 1.0 in Schritten von 0.1
 p_values = np.linspace(0,0.01,10,endpoint=True).tolist()
-p_values = np.linspace(0.03,0.03,1,endpoint=True).tolist()
+
+p_values = np.linspace(0.03, 0.05,3,endpoint=True).tolist()
 #p_values = np.arange(0.0, 0.05, (0.05-0)/20).tolist()
 
 p_values = [round(x,3) for x in p_values] #rounding to fix ouput formatter
