@@ -65,13 +65,13 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
             degree = nx.degree_centrality(graph)
             #eigen = nx.eigenvector_centrality(graph)
             closeness = nx.closeness_centrality(graph)
-            betweenness = nx.betweenness_centrality(graph)
+           # betweenness = nx.betweenness_centrality(graph)
             
             # degree_comparison = 
 
             cor_spear_degree, p_value = calculate_spearman_correlation(visits_normalized, degree)
             cor_spear_closeness, p_value = calculate_spearman_correlation(visits_normalized, closeness)
-            cor_spear_betweenness, p_value = calculate_spearman_correlation(visits_normalized, betweenness)
+            #cor_spear_betweenness, p_value = calculate_spearman_correlation(visits_normalized, betweenness)
             
             
 
@@ -84,10 +84,10 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
                 'degree': degree,
                 #'eigen': eigen,
                 'closeness' : closeness,
-                'betweenness' : betweenness,
+                #'betweenness' : betweenness,
                 'cor_spear_degree': cor_spear_degree,
                 'cor_spear_closeness': cor_spear_closeness,
-                'cor_spear_betweenness': cor_spear_betweenness,
+                #'cor_spear_betweenness': cor_spear_betweenness,
 
                 # 'mean_distance': mean_distance,
                 # 'std_deviation': std_deviation,
@@ -99,7 +99,7 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
             print(
                 #f"n: {n}, p: {p} -> Mittelwert der Distanzen: {mean_distance:.2f}, Standardabweichung: {std_deviation:.2f}, Median: {median_distance:.2f}")
                 #f"n: {n}, p: {p} -> ")
-                f"n: {n}, p: {p}, deg: {cor_spear_degree}, close: {cor_spear_closeness}, between: {cor_spear_betweenness}, ")
+                f"n: {n}, p: {p}, deg: {cor_spear_degree}, close: {cor_spear_closeness}, ")#, between: {cor_spear_betweenness}
 
     return results
 
@@ -215,15 +215,15 @@ def centrality_correlation_table(centrality_measures):
 
 
 # Definiere Werte für n und p
-n_values = list(range(1000, 10000, 1000))  # Anzahl der Knoten von 50 bis 1000 in Schritten von 50
+n_values = list(range(1000, 11000, 1000))  # Anzahl der Knoten von 50 bis 1000 in Schritten von 50
 #n_values = [1000]
 
 #p_values = [i /20.0 for i in range(1, 21)]  # Werte von 0.1 bis 1.0 in Schritten von 0.1
-p_values = np.linspace(0.05, 0.15,10,endpoint=True).tolist()
+p_values = np.linspace(0.05, 0.05, 1,endpoint=True).tolist()
 #p_values = [0.02]
 
 
-s_formula = lambda n: n * 10
+s_formula = lambda n: n*n * 10
 
 # Führe die Statistiken für unterschiedliche Werte von n und p durch
 results = try_different_n_p_statics(n_values, p_values, s_formula)

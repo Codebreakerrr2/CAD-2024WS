@@ -10,7 +10,10 @@ import seaborn as sns
 from matplotlib.ticker import FuncFormatter
 
 def connected_graph_with_n_p(n, p):
-    g = nx.erdos_renyi_graph(n, p)
+    print("gen graph - start")
+    #g = nx.erdos_renyi_graph(n, p)
+    g= nx.fast_gnp_random_graph(n,p)
+    print("gen graph - start")
 
     # takes very long for big n
     #while not nx.is_connected(g):
@@ -18,6 +21,7 @@ def connected_graph_with_n_p(n, p):
     return g
 
 def random_walk(graph,s):
+    print("random walk - start")
     n = choice(list(graph.nodes))
 
     #cc = nx.connected_components(graph)
@@ -44,6 +48,7 @@ def random_walk(graph,s):
         else:
             n = choice(list(graph.adj[n]))
     #list_of_visits = list(visits.items()) #reverse with dict(list_of_visits)
+    print("random walk - finish")
     return visits
 
 
@@ -82,7 +87,6 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
             # für große n benötigt man immer mehr
             # geeignet schon bei >1 visit für jeden knoten?
 
-            
             for s in s_values:
                 
                 visits = random_walk(graph, s)
@@ -101,7 +105,6 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
                     #'visits': visits,
                     'visited_count': visited_count,
                     'visited_percent': visited_percent,
-                    
                 })
                 print(
                     #f"n: {n}, p: {p} -> Mittelwert der Distanzen: {mean_distance:.2f}, Standardabweichung: {std_deviation:.2f}, Median: {median_distance:.2f}")
@@ -112,30 +115,34 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
 def plot_results(results, n_values, p_values, s_formula):
 
 
-    #TODO: Handle multiple n_values
-    n = n_values[0]
-
-    #TODO: express steps in walk as a factor of n (fixed list maybe)
-
-    sns.set_theme()
-    df = pd.DataFrame(results)
+    #n = n_values[0]
     
+    for n in n_values:
+        #TODO: Handle multiple n_values
 
-    #columns_to_plot = ['p', 's', 'visited_percent']
+        #TODO: express steps in walk as a factor of n (fixed list maybe)
 
-    df_pivoted = pd.pivot_table(df, index='s', columns='p', values='visited_percent')
-    
-    f, ax = plt.subplots(figsize=(20, 10))
-    sns_ax = sns.heatmap(df_pivoted, annot=True, fmt=".2f", linewidths=.5, ax=ax)
-    sns_ax.set(xlabel ="probability", ylabel = "Steps in Walk", title =f"Random Walk - Node Coverage % - {str(n)} Nodes in Graph ")
-    #https://matplotlib.org/3.1.1/gallery/ticks_and_spines/tick-formatters.html
-    # does not work
-    #ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:.2f}'.format(x) ))
-    #ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: np.format_float_positional(x/100, unique=False, precision=3) ))
-    #ax.xaxis.set_major_formatter(FuncFormatter(lambda x,pos: np.round(x,3) ))
-    #ax.xaxis.set_major_formatter(FuncFormatter(lambda x,pos: str(x) ) )
-    
-    plt.savefig("heatmap_unconnected_{str(n)}.jpg")
+        sns.set_theme()
+        df = pd.DataFrame(results)
+
+        #df = df.query(f"n = {n}")
+        df = df[(df.n == n)]
+
+        #columns_to_plot = ['p', 's', 'visited_percent']
+
+        df_pivoted = pd.pivot_table(df, index='s', columns='p', values='visited_percent')
+        
+        f, ax = plt.subplots(figsize=(20, 10))
+        sns_ax = sns.heatmap(df_pivoted, annot=True, fmt=".2f", linewidths=.5, ax=ax)
+        sns_ax.set(xlabel ="probability", ylabel = "Steps in Walk", title =f"Random Walk - Node Coverage % - {str(n)} Nodes in Graph ")
+        #https://matplotlib.org/3.1.1/gallery/ticks_and_spines/tick-formatters.html
+        # does not work
+        #ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:.2f}'.format(x) ))
+        #ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: np.format_float_positional(x/100, unique=False, precision=3) ))
+        #ax.xaxis.set_major_formatter(FuncFormatter(lambda x,pos: np.round(x,3) ))
+        #ax.xaxis.set_major_formatter(FuncFormatter(lambda x,pos: str(x) ) )
+        
+        plt.savefig(f"heatmap_lengths_unconnected_{str(n)}.jpg")
 
 
 # def plot_results(results, n_values, p_values):
@@ -183,9 +190,11 @@ def plot_results(results, n_values, p_values, s_formula):
 # Definiere Werte für n und p
 n_values = list(range(50, 1000, 100))  # Anzahl der Knoten von 50 bis 1000 in Schritten von 50
 n_values = [1000]
+n_values = discrete_log_scale(100,1000,5)
 
 #p_values = [i /20.0 for i in range(1, 21)]  # Werte von 0.1 bis 1.0 in Schritten von 0.1
 p_values = np.linspace(0,0.01,10,endpoint=True).tolist()
+p_values = np.linspace(0.03,0.03,1,endpoint=True).tolist()
 #p_values = np.arange(0.0, 0.05, (0.05-0)/20).tolist()
 
 p_values = [round(x,3) for x in p_values] #rounding to fix ouput formatter
