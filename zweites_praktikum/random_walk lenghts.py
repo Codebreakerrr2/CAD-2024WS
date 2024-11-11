@@ -117,11 +117,11 @@ def plot_results(results, n_values, p_values, s_formula):
 
     #n = n_values[0]
     
-    for n in n_values:
+    
         #TODO: Handle multiple n_values
 
         #TODO: express steps in walk as a factor of n (fixed list maybe)
-
+        
         sns.set_theme()
         df = pd.DataFrame(results)
 
