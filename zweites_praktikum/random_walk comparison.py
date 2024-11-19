@@ -110,7 +110,7 @@ def try_different_n_p_statics(n_values, p_values, s_formula):
 
     return results
 
-def plot_results(results, n_values, p_values, s_formula, graph_name):
+def plot_results(results, n_values, p_values, s_formula): # , graph_name
 
 
     #TODO: Handle multiple n_values - maybe handle them outside - 

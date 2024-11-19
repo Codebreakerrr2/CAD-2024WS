@@ -60,7 +60,7 @@ def try_different_n_p_statics(n_values, p_values, s_values):
                 cor_spear_betweenness, p_value = calculate_spearman_correlation(visits_normalized, betweenness)
                 cor_spear_eigen, p_value = calculate_spearman_correlation(visits_normalized, eigen)
                 
-                cor_kentau_degree = 
+                #cor_kentau_degree = 
 
                 results.append({
                     'n': n,
@@ -98,9 +98,12 @@ def plot_results(results, n_values, p_values, s_values):
         for result in results:
             if result['s'] == s:
                 cor_degree.append(result['cor_spear_degree'])
-                cor_between.append(result['cor_spear_betweenness'])
-                cor_closeness.append(result['cor_spear_closeness'])
-                cor_eigen.append(result['cor_spear_eigen'])
+                #cor_between.append(result['cor_spear_betweenness'])
+                #cor_closeness.append(result['cor_spear_closeness'])
+                #cor_eigen.append(result['cor_spear_eigen'])
+                
+                
+                
                 # s_values_full.append(n)
                 #s_values.append(result['s'])
         
@@ -109,9 +112,9 @@ def plot_results(results, n_values, p_values, s_values):
     plt.figure()
     #for i, s in enumerate(s_values):
     plt.plot(s_values, cor_degree, label=f'Degree', marker='o')
-    plt.plot(s_values, cor_between, label=f'Closeness', marker='o')
-    plt.plot(s_values, cor_closeness, label=f'Betweenness', marker='o')
-    plt.plot(s_values, cor_eigen, label=f'Eigen', marker='o')
+    #plt.plot(s_values, cor_between, label=f'Closeness', marker='o')
+    #plt.plot(s_values, cor_closeness, label=f'Betweenness', marker='o')
+    #plt.plot(s_values, cor_eigen, label=f'Eigen', marker='o')
 
     plt.title('Korrelation Walk zu Degree für variables s von n*100 bis n*n')
     plt.xlabel('Walklength s')

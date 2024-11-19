@@ -33,8 +33,8 @@ def rautenGraph():
     return G
 
 if __name__ == "__main__":
-    G = rautenGraph()
-    ng = convertGraph(G)
+    original_graph = rautenGraph()
+    new_graph = convertGraph(original_graph)
     options = {
     'node_color': 'yellow',
     'node_size': 1000,
@@ -42,25 +42,52 @@ if __name__ == "__main__":
     'arrowstyle': '-|>',
     'arrowsize': 12,
 }
-    print(G)
+    print(original_graph)
     
-    pos = nx.spring_layout(G)
+    pos = nx.spring_layout(original_graph)
     
-    nx.draw_networkx(G,pos=pos,with_labels=True, **options)
+    nx.draw_networkx(original_graph,pos=pos,with_labels=True, **options)
 
-    extra_labels = {n: G.nodes[n]['weight'] for n in G.nodes}
+    extra_labels = {n: original_graph.nodes[n]['weight'] for n in original_graph.nodes}
     extra_label_offset = 0.1  # Adjust to control label distance from nodes
     extra_pos = {node: (x + extra_label_offset, y + extra_label_offset) for node, (x, y) in pos.items()}
-    nx.draw_networkx_labels(G,pos=extra_pos,labels=extra_labels)
+    nx.draw_networkx_labels(original_graph,pos=extra_pos,labels=extra_labels)
     plt.show()
 
 
-    pos = nx.spring_layout(ng)
-    nx.draw(ng,pos=pos,with_labels=True, **options)
-    labels = nx.get_edge_attributes(ng,'weight')
+    pos = nx.spring_layout(new_graph)
+    nx.draw(new_graph,pos=pos,with_labels=True, **options)
+    labels = nx.get_edge_attributes(new_graph,'weight')
     print(labels)
-    nx.draw_networkx_edge_labels(ng,pos=pos,edge_labels=labels)
+    nx.draw_networkx_edge_labels(new_graph,pos=pos,edge_labels=labels)
     plt.show()
+    
+#knotenpaare aus g in g^
+pairs = []
+for n1 in original_graph.nodes:
+    for n2 in original_graph.nodes:
+        pairs.append((n1,n2,str(n1)+"_o",str(n2)+"_i"))
+
+#sum minpath for every pair
+
+for (fro,to,nfro,nto) in pairs:
+    spath = nx.shortest_path(new_graph,nfro,nto) # None für nicht erreichbar
+    if spath == None:
+        continue
+    window_size = 2
+    for i in range(len(spath) - window_size + 1): #sliding window function
+        # print("from " + )
+        leg = spath[i: i + window_size]
+        old = nx.get_edge_attributes(new_graph,(leg[0],leg[1]),"cum")
+        nx.set_edge_attributes(new_graph,(leg[0],leg[1]),"cum":old+1))
+        #todo only between in+out > node_cum
+        # todo besuche, maxbesuche (via asp)
+
+        
+
+
+
+
     
 
 """
