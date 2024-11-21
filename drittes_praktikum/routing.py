@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+from networkx import NetworkXNoPath
 import numpy as np
 
 ##
@@ -32,19 +33,10 @@ def rautenGraph():
     G.add_edges_from([(1, 2), (2, 4), (1, 3), (3,4)]) # Weg1 + Weg2
     return G
 
-if __name__ == "__main__":
-    original_graph = rautenGraph()
-    new_graph = convertGraph(original_graph)
-    options = {
-    'node_color': 'yellow',
-    'node_size': 1000,
-    'width': 1,
-    'arrowstyle': '-|>',
-    'arrowsize': 12,
-}
-    print(original_graph)
-    
-    pos = nx.spring_layout(original_graph)
+def draw_original_graph(original_graph, options):
+    plt.figure()  
+    plt.title("original G", fontsize=16)
+    pos = nx.spring_layout(original_graph, k=0.3, iterations=20)
     
     nx.draw_networkx(original_graph,pos=pos,with_labels=True, **options)
 
@@ -54,51 +46,96 @@ if __name__ == "__main__":
     nx.draw_networkx_labels(original_graph,pos=extra_pos,labels=extra_labels)
     plt.show()
 
-
-    pos = nx.spring_layout(new_graph)
+def plot_transformed_graph(new_graph, options):
+    plt.figure()  
+    plt.title("transformed G", fontsize=16)
+    pos = nx.spring_layout(new_graph, k=0.3, iterations=20)
     nx.draw(new_graph,pos=pos,with_labels=True, **options)
     labels = nx.get_edge_attributes(new_graph,'weight')
     print(labels)
     nx.draw_networkx_edge_labels(new_graph,pos=pos,edge_labels=labels)
     plt.show()
-    
-#knotenpaare aus g in g^
-pairs = []
-for n1 in original_graph.nodes:
-    for n2 in original_graph.nodes:
-        pairs.append((n1,n2,str(n1)+"_o",str(n2)+"_i"))
+
+#cum
+def plot_cum_visits(new_graph, options):
+    plt.figure()  
+    plt.title("cumulative visits sp", fontsize=16)
+    pos = nx.spring_layout(new_graph, k=0.3, iterations=20)
+    nx.draw(new_graph,pos=pos,with_labels=True, **options)
+    labels = nx.get_edge_attributes(new_graph,'cum')
+    nx.draw_networkx_edge_labels(new_graph,pos=pos,edge_labels=labels)
+    plt.show()
+
+#aspcum
+def plot_asp_cum_visits(new_graph, options):
+    plt.figure()  
+    plt.title("cumulative visits asp", fontsize=16)
+    pos = nx.spring_layout(new_graph, k=0.3, iterations=20)
+    nx.draw(new_graph,pos=pos,with_labels=True, **options)
+    labels = nx.get_edge_attributes(new_graph,'aspcum')
+    nx.draw_networkx_edge_labels(new_graph,pos=pos,edge_labels=labels)
+    plt.show()
 
 #sum minpath for every pair
-
-for (fro,to,nfro,nto) in pairs:
-    spath = nx.shortest_path(new_graph,nfro,nto) # None für nicht erreichbar
-    if spath == None:
-        continue
-    window_size = 2
-    for i in range(len(spath) - window_size + 1): #sliding window function
+#mutates new_graph
+def cumulative_visits(new_graph, relevant_edges_4_tuple_list):
+    for (fro,to,nfro,nto) in relevant_edges_4_tuple_list:
+        try:
+            spath = nx.shortest_path(new_graph,nfro,nto) # None für nicht erreichbar
+            aspath = nx.all_shortest_paths(new_graph,nfro,nto)
+        except NetworkXNoPath:
+            continue
+        if spath == None:
+            continue
+        window_size = 2
+    #sp-cum
+        for i in range(len(spath) - window_size + 1): #sliding window function
+            attrname = "cum"
         # print("from " + )
-        leg = spath[i: i + window_size]
-        old = nx.get_edge_attributes(new_graph,(leg[0],leg[1]),"cum")
-        nx.set_edge_attributes(new_graph,(leg[0],leg[1]),"cum":old+1))
+            leg = spath[i: i + window_size]
+            oldattr = nx.get_edge_attributes(new_graph,name= attrname,default=0)
+            edgecum = oldattr[(leg[0],leg[1])]
+            nx.set_edge_attributes(new_graph,{(leg[0],leg[1]):edgecum+1},attrname)
         #todo only between in+out > node_cum
+    #asp-cum    
         # todo besuche, maxbesuche (via asp)
+        for path in aspath:
+            for i in range(len(spath) - window_size + 1): #sliding window function
+                attrname = "aspcum"
+            # print("from " + )
+                leg = spath[i: i + window_size]
+                oldattr = nx.get_edge_attributes(new_graph,name= attrname,default=0)
+                edgecum = oldattr[(leg[0],leg[1])]
+                nx.set_edge_attributes(new_graph,{(leg[0],leg[1]):edgecum+1},attrname)
 
-        
+#knotenpaare aus g in g^
+def relevant_edges_mapping(original_graph):
+    pairs = []
+    for n1 in original_graph.nodes:
+        for n2 in original_graph.nodes:
+            pairs.append((n1,n2,str(n1)+"_o",str(n2)+"_i"))
+    return pairs
 
 
+if __name__ == "__main__":
+    original_graph = rautenGraph()
 
+    new_graph = convertGraph(original_graph)
 
+    plot_options = {
+    'node_color': 'yellow',
+    'node_size': 1000,
+    'width': 1,
+    'arrowstyle': '-|>',
+    'arrowsize': 12,
+}
     
-
-"""
-Erstmal Graphen erstellen - Bonbon (Raute)
-
-Knotengewichte als Attribut vergeben
-
-Funktion um Graph zu konvertieren
-
-Betweenness-Centrality auswerten (per Hand oder Networkx)?
-
-
-
-"""
+    draw_original_graph(original_graph, plot_options)
+    
+    plot_transformed_graph(new_graph, plot_options)
+    pairs = relevant_edges_mapping(original_graph)
+    cumulative_visits(new_graph, pairs)
+    plot_cum_visits(new_graph, plot_options)
+    plot_asp_cum_visits(new_graph, plot_options)
+        
+        
