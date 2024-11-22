@@ -89,9 +89,9 @@ def plot_asp_cum_visits(new_graph, options):
     plt.savefig("asp_cum_visits.png")
     #plt.show()
 
-def plot_asp_cum_visits_oldgraph(original_graph, attr_to_draw, options):
+def plot_oldgraph_with_any_attr_top_left(original_graph,title, attr_to_draw, options):
     plt.figure()  
-    plt.title("cumulative visits asp original graph", fontsize=16)
+    plt.title(title, fontsize=16)
     pos = nx.spring_layout(original_graph, k=layout_k, iterations=layout_iterations)
     
     nx.draw_networkx(original_graph,pos=pos,with_labels=True, **options)
@@ -106,9 +106,9 @@ def plot_asp_cum_visits_oldgraph(original_graph, attr_to_draw, options):
     extra_pos_aspcum = {node: (x - extra_label_offset_aspcum, y + extra_label_offset_aspcum) for node, (x, y) in pos.items()}
     nx.draw_networkx_labels(original_graph,pos=extra_pos_aspcum,labels=extra_labels_aspcum)
 
-    plt.savefig(get_script_path()+ "asp_cum_visits_original_graph.png")
+    plt.savefig(attr_to_draw + ".png")
     
-    plt.show()
+    #plt.show()
     
 
 
@@ -214,14 +214,19 @@ if __name__ == "__main__":
     aspcum = nx.get_edge_attributes(new_graph, 'aspcum') #slightly better results than spcum maybe
     #spcum format: {(1, 2): 4.5, (2, 3): 3.0}
 
-    #btwn = nx.betweenness_centrality(original_graph,weight="weight")#similar to spcum
-    #print(btwn)
-    #nx.set_edge_attributes(original_graph,btwn,"btwn") #betweenness ist knotenbezogen -- no fix.
+    btwn = nx.betweenness_centrality(new_graph,weight="weight")#similar to spcum
+    print("btwn" + str(btwn) )
+    btwn_transformed = {}
+    for node in original_graph.nodes:
+        nfrom, nto = original_node_2_transformed_edge(node)
+        btwn_transformed[node] = max(btwn[nfrom],btwn[nto])
+    print(btwn_transformed)
+    nx.set_node_attributes(original_graph,btwn_transformed,"btwn") #betweenness ist knotenbezogen -- no fix.
+
 
     #reverse transformed dicts
     filtered_oldgraph_attr_spcum = reversetransform_attributes(original_graph, new_graph, "spcum",0)
     normalized_oldgraph_attr_spcum = normalize_attrs(filtered_oldgraph_attr_spcum)
-    #nx.set_edge_attributes(original_graph,btwn,"btwn")
     filtered_oldgraph_attr_aspcum = reversetransform_attributes(original_graph, new_graph, "aspcum",0)
     normalized_oldgraph_attr_aspcum = normalize_attrs(filtered_oldgraph_attr_aspcum)
     #filtered_oldgraph_attr_betweenness = reversetransform_attributes(original_graph, new_graph, "btwn",0)
@@ -235,8 +240,11 @@ if __name__ == "__main__":
 
     ## apply transformed normalized dicts to original graph for plotting
     nx.set_node_attributes(original_graph,normalized_oldgraph_attr_aspcum,"aspcum")
-    plot_asp_cum_visits_oldgraph(original_graph, "aspcum", plot_options)
+    plot_oldgraph_with_any_attr_top_left(original_graph,"cumulative visits asp original graph", "aspcum", plot_options)
 
+    plot_oldgraph_with_any_attr_top_left(original_graph,"betweenness original graph", "btwn", plot_options)
+
+    plt.show()
 
     
 #rücktransformiert
