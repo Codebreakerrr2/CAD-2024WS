@@ -27,6 +27,8 @@ layout_iterations = 300
 layout_k = 0.5
 
 
+
+
 def rautenGraph():
     # Create a graph with node weights
     G = nx.DiGraph()
@@ -34,10 +36,18 @@ def rautenGraph():
         (1, {'weight': 10}), #A Start
         (2, {'weight': 20}), #B Weg 1
         (3, {'weight': 30}), #D Weg 2
-        (4, {'weight': 10}), #C Ziel
+        (4, {'weight': 40}), #C Ziel
     ])
     G.add_edges_from([(1, 2), (2, 4), (1, 3), (3,4)]) # Weg1 + Weg2
     return G
+
+plot_options = {
+    'node_color': 'yellow',
+    'node_size': 1000,
+    'width': 1,
+    'arrowstyle': '-|>',
+    'arrowsize': 12,
+    }
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -89,7 +99,7 @@ def plot_asp_cum_visits(new_graph, options):
     plt.savefig("asp_cum_visits.png")
     #plt.show()
 
-def plot_oldgraph_with_any_attr_top_left(original_graph,title, attr_to_draw, options):
+def plot_nodebasedgraph_with_any_attr_top_left(original_graph,title, attr_to_draw, options):
     plt.figure()  
     plt.title(title, fontsize=16)
     pos = nx.spring_layout(original_graph, k=layout_k, iterations=layout_iterations)
@@ -227,13 +237,7 @@ def old_main():
 
     graph_edgebased = convert_graph_from_nodebased_to_edgebased(graph_nodebased)
 
-    plot_options = {
-    'node_color': 'yellow',
-    'node_size': 1000,
-    'width': 1,
-    'arrowstyle': '-|>',
-    'arrowsize': 12,
-}
+    
     
     plot_original_graph(graph_nodebased, plot_options)
     
@@ -283,9 +287,9 @@ def old_main():
     ## apply transformed normalized dicts to original graph for plotting
     nx.set_node_attributes(graph_nodebased,normalized_nodebased_attr_aspcum,"aspcum")
 
-    plot_oldgraph_with_any_attr_top_left(graph_nodebased,"cumulative visits asp original graph", "aspcum", plot_options)
+    plot_nodebasedgraph_with_any_attr_top_left(graph_nodebased,"cumulative visits asp original graph", "aspcum", plot_options)
 
-    plot_oldgraph_with_any_attr_top_left(graph_nodebased,"betweenness original graph", "btwn", plot_options)
+    plot_nodebasedgraph_with_any_attr_top_left(graph_nodebased,"betweenness original graph", "btwn", plot_options)
 
     # SHOW PLOTS
     #plt.show()
@@ -321,9 +325,14 @@ def apply_optimized_weights_on_attribute_dict_according_to_bussmeier(nodebased_b
     
     #apply_optimized_weights_on_attribute_dict_according_to_bussmeier(btwn_transformed_nodebased)
 
+def apply_rounding_to_nodebased_attrdict(new_weights_nodebased_attrdict):
+    new_weights_nodebased_attrdict_rounded = {}
+    for k,v in new_weights_nodebased_attrdict.items():
+        new_weights_nodebased_attrdict_rounded[k] = round(v)
+    return new_weights_nodebased_attrdict_rounded
 
 
-def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph):
+def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph,reweighting_constant):
     """ calculates load and metrics """
     graph_nodebased = original_graph_with_node_weights.copy()
 
@@ -338,7 +347,10 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph):
         #calculate betweenness centrality on edgebased as load
         betweenness_edgebased_attrdict = nx.betweenness_centrality(graph_edgebased,weight="weight")#similar to spcum
         
-        # transform betweenness to nodebased
+        print("betweenness edgebased")
+        print(betweenness_edgebased_attrdict)
+
+        # reverse transform betweenness to nodebased just for returning
         betweenness_nodebased = transform_edgebased_to_nodebased_attributes(graph_nodebased,betweenness_edgebased_attrdict)
         
         #calculate metrics (i.e. balance)  using betweenness (not asp)
@@ -350,10 +362,20 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph):
     betweenness_nodebased, metrics_before_reweighting = calculate_load_and_get_metrics(original_graph_with_node_weights)
 
     # apply bussmeier's reweighting formula
-    new_weights_nodebased_attrdict = apply_optimized_weights_on_attribute_dict_according_to_bussmeier(betweenness_nodebased,10)
+    new_weights_nodebased_attrdict_unrounded = apply_optimized_weights_on_attribute_dict_according_to_bussmeier(betweenness_nodebased,reweighting_constant)
     
-    # set new weights as weights on nodebased graph
-    nx.set_node_attributes(graph_nodebased,new_weights_nodebased_attrdict,"weight")
+    # apply betweenness to nodebased_graph for plotting
+    nx.set_node_attributes(graph_nodebased,betweenness_nodebased,"betweenness")
+
+    # apply rounding to the rather non-integer-like, very rational-like numbers of the reweighting function results.
+    # think of a good way to estimate the places to round to or use the constant in bussmeier's function for this purpose
+    new_weights_nodebased_attrdict_rounded = apply_rounding_to_nodebased_attrdict(new_weights_nodebased_attrdict_unrounded)
+    
+    # set new weights as weights on nodebased graph i.e. mutate the graph
+    nx.set_node_attributes(graph_nodebased,new_weights_nodebased_attrdict_rounded,"weight")
+
+    # set unrounded weight for fun, plotting and guesstimating
+    nx.set_node_attributes(graph_nodebased,new_weights_nodebased_attrdict_unrounded,"unrounded_weight")
 
     betweenness_nodebased, metrics_after_reweighting = calculate_load_and_get_metrics(graph_nodebased)
 
@@ -362,12 +384,16 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph):
 
 if __name__ == "__main__":
     directed_nodeweighted_graph = rautenGraph()
-    
-    altered_graph_nodebased, metrics_before_reweighting, metrics_after_reweighting = do_single_experiment_iteration(directed_nodeweighted_graph)
+    plot_nodebasedgraph_with_any_attr_top_left(directed_nodeweighted_graph,"original _weight","weight",plot_options)
+    altered_graph_nodebased, metrics_before_reweighting, metrics_after_reweighting = do_single_experiment_iteration(directed_nodeweighted_graph,100)
     print("before")
     pprint.pprint(metrics_before_reweighting)
     print("after")
     pprint.pprint(metrics_after_reweighting)
+    plot_nodebasedgraph_with_any_attr_top_left(altered_graph_nodebased,"reweighted once _rounded_weight","weight",plot_options)
+    plot_nodebasedgraph_with_any_attr_top_left(altered_graph_nodebased,"reweighted once _unrounded_weight","unrounded_weight",plot_options)
+    plot_nodebasedgraph_with_any_attr_top_left(altered_graph_nodebased,"reweighted once _betweenness","betweenness",plot_options)
+    plt.show()
         
 
 
