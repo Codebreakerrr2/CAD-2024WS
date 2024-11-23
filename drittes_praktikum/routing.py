@@ -7,7 +7,7 @@ import numpy as np
 
 
 ## nodeweight -> edgeweight
-def convertGraph(g:nx.DiGraph):
+def convert_graph_from_nodebased_to_edgebased(g:nx.DiGraph) -> nx.DiGraph:
     ng = nx.DiGraph()
     for node, attr in g.nodes(data=True):
         node_in = f"{node}_i"
@@ -112,26 +112,28 @@ def plot_oldgraph_with_any_attr_top_left(original_graph,title, attr_to_draw, opt
     
 
 
-def original_node_2_transformed_edge(nodeid):
+def original_node_2_transformed_edge(nodeid) -> tuple:
     return (str(nodeid)+"_i",str(nodeid)+"_o")
 
 #sum minpath for every pair
 #mutates new_graph
-def cumulative_visits(old_graph,new_graph):
-    #knotenpaare als 4-tupel aus g in g^
-    def cartesian_product_og_ng_mapping(old_graph): # cartesian product - wrong?
+def cumulative_visits_mutates_edgebased_graph(nodebased_graph,edgebased_graph):
+    """adds spcum and aspcum attributes to edgebased graph"""
+
+    def cartesian_product_nodebased_edgebased_mapping(nodebased_graph): # cartesian product - wrong?
+        """knotenpaare als 4-tupel aus g in g^"""
         pairs = []
-        for node_from in old_graph.nodes:
-            for node_to in old_graph.nodes:
+        for node_from in nodebased_graph.nodes:
+            for node_to in nodebased_graph.nodes:
                 pairs.append((node_from,node_to,str(node_from)+"_o",str(node_to)+"_i")) #sic! o->i
         return pairs
     
-    possible_pairs = cartesian_product_og_ng_mapping(old_graph)
+    possible_pairs = cartesian_product_nodebased_edgebased_mapping(nodebased_graph)
 
     for (fro,to,nfro,nto) in possible_pairs:
         try:
-            spath = nx.shortest_path(new_graph,nfro,nto) # None für nicht erreichbar
-            aspath = nx.all_shortest_paths(new_graph,nfro,nto)
+            spath = nx.shortest_path(edgebased_graph,nfro,nto) # None für nicht erreichbar
+            aspath = nx.all_shortest_paths(edgebased_graph,nfro,nto)
         except NetworkXNoPath:
             continue
         if spath == None:
@@ -141,9 +143,9 @@ def cumulative_visits(old_graph,new_graph):
         for i in range(len(spath) - window_size + 1): #sliding window function
             attrname = "spcum"
             leg = spath[i: i + window_size]
-            oldattr = nx.get_edge_attributes(new_graph,name= attrname,default=0)
+            oldattr = nx.get_edge_attributes(edgebased_graph,name= attrname,default=0)
             edgecum = oldattr[(leg[0],leg[1])]
-            nx.set_edge_attributes(new_graph,{(leg[0],leg[1]):edgecum+1},attrname)
+            nx.set_edge_attributes(edgebased_graph,{(leg[0],leg[1]):edgecum+1},attrname)
         #todo only between in+out > node_cum
     #asp-cum    
         # todo besuche, maxbesuche (via asp)
@@ -151,31 +153,31 @@ def cumulative_visits(old_graph,new_graph):
             for i in range(len(spath) - window_size + 1): #sliding window function
                 attrname = "aspcum"
                 leg = spath[i: i + window_size]
-                oldattr = nx.get_edge_attributes(new_graph,name= attrname,default=0)
+                oldattr = nx.get_edge_attributes(edgebased_graph,name= attrname,default=0)
                 edgecum = oldattr[(leg[0],leg[1])]
-                nx.set_edge_attributes(new_graph,{(leg[0],leg[1]):edgecum+1},attrname)
+                nx.set_edge_attributes(edgebased_graph,{(leg[0],leg[1]):edgecum+1},attrname)
 
 
 
-def reversetransform_attributes(original_graph, new_graph,attributename,defaultvalue):
-    new_attrs = nx.get_edge_attributes(new_graph,attributename)
+def reversetransform_attributes(nodebased_graph, edgebased_graph,attributename,defaultvalue) -> dict:
+    new_attrs = nx.get_edge_attributes(edgebased_graph,attributename)
     #relevant_edges = []
     filtered_newgraph_attrs = {}
     filtered_oldgraph_attrs = {}
-    for node in original_graph.nodes:
+    for node in nodebased_graph.nodes:
         new_edge = original_node_2_transformed_edge(node)
         #relevant_edges.append(new_edge)
         if(new_edge in new_attrs):
             filtered_newgraph_attrs[new_edge] = new_attrs[new_edge]
         else:
             filtered_newgraph_attrs[new_edge] = defaultvalue
-    for node in original_graph.nodes:
+    for node in nodebased_graph.nodes:
         # if()
         attr = filtered_newgraph_attrs[original_node_2_transformed_edge(node)]
         filtered_oldgraph_attrs[node] = attr
     return filtered_oldgraph_attrs
 
-def normalize_attrs(attribute_dict : dict):
+def normalize_attrs(attribute_dict : dict) -> dict:
     #get max
     max_val = max(attribute_dict.values())
 
@@ -184,7 +186,8 @@ def normalize_attrs(attribute_dict : dict):
         new_dict[key] = value/max_val
     return new_dict
 
-def get_metrics(node_loads,old_graph):
+def get_metrics(node_loads,nodebased_graph):
+        """  node_loads,mean,variance,max,normalized_entropy, balance """
         ### Begin ChatGpt Copypasta
         loads = np.array(list(node_loads.values()))
         mean_load = np.mean(loads)
@@ -194,7 +197,7 @@ def get_metrics(node_loads,old_graph):
         # Entropie (normiert)
         probabilities = loads / np.sum(loads)  # Wahrscheinlichkeitsverteilung der Lasten
         entropy = -np.sum(probabilities * np.log(probabilities + 1e-10))  # Entropie ####1e-10 is added because small probabilities might get rounded to 0 and the log for 0 is undefined.
-        max_entropy = np.log(len(old_graph.nodes()))  # Maximale Entropie
+        max_entropy = np.log(len(nodebased_graph.nodes()))  # Maximale Entropie
         normalized_entropy = entropy / max_entropy
         
         # Balancemetrik
@@ -211,10 +214,17 @@ def get_metrics(node_loads,old_graph):
         }
         return metrics
 
-if __name__ == "__main__":
-    original_graph = rautenGraph()
+def transform_edgebased_to_nodebased_attributes(nodebased_graph : dict,attribute_dict :dict) -> dict :
+    nodebased_attribute_dict = {}
+    for node in nodebased_graph.nodes:
+        nfrom, nto = original_node_2_transformed_edge(node)
+        nodebased_attribute_dict[node] = max(attribute_dict[nfrom],betweenness_edgebased_attrdict[nto])
 
-    new_graph = convertGraph(original_graph)
+
+def old_main():
+    graph_nodebased = rautenGraph()
+
+    graph_edgebased = convert_graph_from_nodebased_to_edgebased(graph_nodebased)
 
     plot_options = {
     'node_color': 'yellow',
@@ -224,84 +234,136 @@ if __name__ == "__main__":
     'arrowsize': 12,
 }
     
-    plot_original_graph(original_graph, plot_options)
+    plot_original_graph(graph_nodebased, plot_options)
     
-    plot_transformed_graph(new_graph, plot_options)
+    plot_transformed_graph(graph_edgebased, plot_options)
     
     # add spcum und aspcum attributes to new_graph
-    cumulative_visits(original_graph, new_graph)
+    cumulative_visits_mutates_edgebased_graph(graph_nodebased, graph_edgebased)
 
-    plot_spcum_visits(new_graph, plot_options)
+    plot_spcum_visits(graph_edgebased, plot_options)
 
-    plot_asp_cum_visits(new_graph, plot_options)
+    plot_asp_cum_visits(graph_edgebased, plot_options)
 
-    spcum = nx.get_edge_attributes(new_graph, 'spcum') #shortest path visits
+    spcum_edgebased = nx.get_edge_attributes(graph_edgebased, 'spcum') #shortest path visits
     #spcum format: {(1, 2): 4.5, (2, 3): 3.0}
 
-    aspcum = nx.get_edge_attributes(new_graph, 'aspcum') #slightly better results than spcum maybe
+    aspcum_edgebased = nx.get_edge_attributes(graph_edgebased, 'aspcum') #slightly better results than spcum maybe
     #spcum format: {(1, 2): 4.5, (2, 3): 3.0}
 
     #calculate betweenness on edgebased graph via weight attribute
-    btwn = nx.betweenness_centrality(new_graph,weight="weight")#similar to spcum
+    betweenness_edgebased_attrdict = nx.betweenness_centrality(graph_edgebased,weight="weight")#similar to spcum
     
-    print("btwn" + str(btwn) )
+    print("btwn" + str(betweenness_edgebased_attrdict) )
     
-    def transform_edgebased_to_nodebased_attributes(original_graph,attribute_dict):
-        nodebased_attribute_dict = {}
-        for node in original_graph.nodes:
-            nfrom, nto = original_node_2_transformed_edge(node)
-            nodebased_attribute_dict[node] = max(attribute_dict[nfrom],btwn[nto])
+    
 
-    btwn_transformed = transform_edgebased_to_nodebased_attributes(original_graph,btwn)
-    print(btwn_transformed)
+    btwn_transformed_nodebased = transform_edgebased_to_nodebased_attributes(graph_nodebased,betweenness_edgebased_attrdict)
+    print(btwn_transformed_nodebased)
     
     #Setze betweenness im nodeweighted_graph mit attribute_dict
-    nx.set_node_attributes(original_graph,btwn_transformed,"btwn") #betweenness ist knotenbezogen -- no fix.
+    nx.set_node_attributes(graph_nodebased,btwn_transformed_nodebased,"btwn") #betweenness ist knotenbezogen -- no fix.
 
 
     #reverse transformed dicts
-    filtered_oldgraph_attr_spcum = reversetransform_attributes(original_graph, new_graph, "spcum",0)
-    normalized_oldgraph_attr_spcum = normalize_attrs(filtered_oldgraph_attr_spcum)
-    filtered_oldgraph_attr_aspcum = reversetransform_attributes(original_graph, new_graph, "aspcum",0)
-    normalized_oldgraph_attr_aspcum = normalize_attrs(filtered_oldgraph_attr_aspcum)
+    filtered_nodebased_attr_spcum = reversetransform_attributes(graph_nodebased, graph_edgebased, "spcum",0)
+    normalized_nodebased_attr_spcum = normalize_attrs(filtered_nodebased_attr_spcum)
+    filtered_nodebased_attr_aspcum = reversetransform_attributes(graph_nodebased, graph_edgebased, "aspcum",0)
+    normalized_nodebased_attr_aspcum = normalize_attrs(filtered_nodebased_attr_aspcum)
     #filtered_oldgraph_attr_betweenness = reversetransform_attributes(original_graph, new_graph, "btwn",0)
 
-    print(filtered_oldgraph_attr_spcum)
-    print(normalized_oldgraph_attr_spcum)
-    print(filtered_oldgraph_attr_aspcum)
-    print(normalized_oldgraph_attr_aspcum)
+    print(filtered_nodebased_attr_spcum)
+    print(normalized_nodebased_attr_spcum)
+    print(filtered_nodebased_attr_aspcum)
+    print(normalized_nodebased_attr_aspcum)
     #print(filtered_oldgraph_attr_betweenness)
     #print(btwn)
 
     ## apply transformed normalized dicts to original graph for plotting
-    nx.set_node_attributes(original_graph,normalized_oldgraph_attr_aspcum,"aspcum")
+    nx.set_node_attributes(graph_nodebased,normalized_nodebased_attr_aspcum,"aspcum")
 
-    plot_oldgraph_with_any_attr_top_left(original_graph,"cumulative visits asp original graph", "aspcum", plot_options)
+    plot_oldgraph_with_any_attr_top_left(graph_nodebased,"cumulative visits asp original graph", "aspcum", plot_options)
 
-    plot_oldgraph_with_any_attr_top_left(original_graph,"betweenness original graph", "btwn", plot_options)
+    plot_oldgraph_with_any_attr_top_left(graph_nodebased,"betweenness original graph", "btwn", plot_options)
 
     # SHOW PLOTS
     #plt.show()
 
 
     ###Calculate Metrics on loads (AllShortestPathVisits) 
-    node_loads = aspcum
-    metrics = get_metrics(node_loads,original_graph)
+    node_loads = aspcum_edgebased
+    metrics = get_metrics(node_loads,graph_nodebased)
+        # Format:
+        # metrics = {
+        #         "node_loads": node_loads,
+        #         "mean_load": mean_load,
+        #         "var_load": var_load,
+        #         "max_load": max_load,
+        #         "normalized_entropy": normalized_entropy,
+        #         "balance_metric": balance_metric
+        #     }
+    
+    print("remember the balance_metric for later comparison: ")
     print(metrics)
 
 
     
-    def apply_optimized_weights_on_attribute_dict_according_to_bussmeier(nodebased_betweenness_dict,constant):
-        # maybe also known as shortest-path-reweighting?
-        #braucht betweenness, constant
-        new_weights_attribute_dict = {}
-        for k,v in nodebased_betweenness_dict:
-            new_weight = constant * v
-            new_weights_attribute_dict[k] = new_weight
-        return new_weights_attribute_dict
+def apply_optimized_weights_on_attribute_dict_according_to_bussmeier(nodebased_betweenness_dict : dict, constant : int) -> dict:
+    """VScode-DocStringTest"""
+    # maybe also known as shortest-path-reweighting?
+    #braucht betweenness, constant
+    new_weights_attribute_dict = {}
+    for k,v in nodebased_betweenness_dict:
+        new_weight = constant * v
+        new_weights_attribute_dict[k] = new_weight
+    return new_weights_attribute_dict
     
-    def do_experiment(constant,og,ng):
-        pass
+    #apply_optimized_weights_on_attribute_dict_according_to_bussmeier(btwn_transformed_nodebased)
+
+
+
+def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph):
+    """ calculates load and metrics """
+    graph_nodebased = original_graph_with_node_weights.copy()
+
+    def calculate_load_and_get_metrics(graph_nodebased) -> tuple[dict, dict]:
+        #convert nodebased (input graph) to edgebased (for calculations)
+        graph_edgebased = convert_graph_from_nodebased_to_edgebased(graph_nodebased)
+        
+        #calculate cumulative visits as load similar to betweenness on edgebased graph
+        #cumulative_visits_mutates_edgebased_graph(graph_nodebased, graph_edgebased)
+        #aspcum_edgebased = nx.get_edge_attributes(graph_edgebased, 'aspcum') #slightly better results than spcum maybe
+        
+        #calculate betweenness centrality on edgebased
+        betweenness_edgebased_attrdict = nx.betweenness_centrality(graph_edgebased,weight="weight")#similar to spcum
+        
+        # transform betweenness to nodebased
+        betweenness_nodebased = transform_edgebased_to_nodebased_attributes(graph_nodebased,betweenness_edgebased_attrdict)
+        
+        #calculate metrics (i.e. balance)  using betweenness (not asp)
+        node_loads = betweenness_edgebased_attrdict
+        metrics_before_reweighting = get_metrics(node_loads,graph_nodebased)
+
+        return betweenness_nodebased, metrics_before_reweighting
+
+    betweenness_nodebased, metrics_before_reweighting = calculate_load_and_get_metrics(graph_nodebased)
+
+    # apply bussmeier's reweighting formula
+    new_weights_nodebased_attrdict = apply_optimized_weights_on_attribute_dict_according_to_bussmeier(betweenness_nodebased)
+    
+    # set new weights as weights on nodebased graph
+    nx.set_node_attributes(graph_nodebased,new_weights_nodebased_attrdict,"weight")
+
+    betweenness_nodebased, metrics_after_reweighting = calculate_load_and_get_metrics(graph_edgebased)
+
+    return graph_nodebased, metrics_before_reweighting, metrics_after_reweighting
+
+
+if __name__ == "__main__":
+    directed_nodeweighted_graph = rautenGraph()
+    altered_graph_nodebased, metrics_before_reweighting, metrics_after_reweighting = do_single_experiment_iteration(directed_nodeweighted_graph)
+    print(metrics_before_reweighting)
+    print(metrics_after_reweighting)
         
 
 
