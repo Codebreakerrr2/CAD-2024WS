@@ -4,7 +4,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from networkx import NetworkXNoPath
 import numpy as np
-
+import pprint
 
 ## nodeweight -> edgeweight
 def convert_graph_from_nodebased_to_edgebased(g:nx.DiGraph) -> nx.DiGraph:
@@ -214,11 +214,12 @@ def get_metrics(node_loads,nodebased_graph):
         }
         return metrics
 
-def transform_edgebased_to_nodebased_attributes(nodebased_graph : dict,attribute_dict :dict) -> dict :
+def transform_edgebased_to_nodebased_attributes(nodebased_graph : dict, betweenness_edgebased_attrdict :dict) -> dict :
     nodebased_attribute_dict = {}
     for node in nodebased_graph.nodes:
         nfrom, nto = original_node_2_transformed_edge(node)
-        nodebased_attribute_dict[node] = max(attribute_dict[nfrom],betweenness_edgebased_attrdict[nto])
+        nodebased_attribute_dict[node] = max(betweenness_edgebased_attrdict[nfrom],betweenness_edgebased_attrdict[nto])
+    return nodebased_attribute_dict
 
 
 def old_main():
@@ -313,7 +314,7 @@ def apply_optimized_weights_on_attribute_dict_according_to_bussmeier(nodebased_b
     # maybe also known as shortest-path-reweighting?
     #braucht betweenness, constant
     new_weights_attribute_dict = {}
-    for k,v in nodebased_betweenness_dict:
+    for k,v in nodebased_betweenness_dict.items():
         new_weight = constant * v
         new_weights_attribute_dict[k] = new_weight
     return new_weights_attribute_dict
@@ -334,7 +335,7 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph):
         #cumulative_visits_mutates_edgebased_graph(graph_nodebased, graph_edgebased)
         #aspcum_edgebased = nx.get_edge_attributes(graph_edgebased, 'aspcum') #slightly better results than spcum maybe
         
-        #calculate betweenness centrality on edgebased
+        #calculate betweenness centrality on edgebased as load
         betweenness_edgebased_attrdict = nx.betweenness_centrality(graph_edgebased,weight="weight")#similar to spcum
         
         # transform betweenness to nodebased
@@ -346,24 +347,27 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph):
 
         return betweenness_nodebased, metrics_before_reweighting
 
-    betweenness_nodebased, metrics_before_reweighting = calculate_load_and_get_metrics(graph_nodebased)
+    betweenness_nodebased, metrics_before_reweighting = calculate_load_and_get_metrics(original_graph_with_node_weights)
 
     # apply bussmeier's reweighting formula
-    new_weights_nodebased_attrdict = apply_optimized_weights_on_attribute_dict_according_to_bussmeier(betweenness_nodebased)
+    new_weights_nodebased_attrdict = apply_optimized_weights_on_attribute_dict_according_to_bussmeier(betweenness_nodebased,10)
     
     # set new weights as weights on nodebased graph
     nx.set_node_attributes(graph_nodebased,new_weights_nodebased_attrdict,"weight")
 
-    betweenness_nodebased, metrics_after_reweighting = calculate_load_and_get_metrics(graph_edgebased)
+    betweenness_nodebased, metrics_after_reweighting = calculate_load_and_get_metrics(graph_nodebased)
 
     return graph_nodebased, metrics_before_reweighting, metrics_after_reweighting
 
 
 if __name__ == "__main__":
     directed_nodeweighted_graph = rautenGraph()
+    
     altered_graph_nodebased, metrics_before_reweighting, metrics_after_reweighting = do_single_experiment_iteration(directed_nodeweighted_graph)
-    print(metrics_before_reweighting)
-    print(metrics_after_reweighting)
+    print("before")
+    pprint.pprint(metrics_before_reweighting)
+    print("after")
+    pprint.pprint(metrics_after_reweighting)
         
 
 
