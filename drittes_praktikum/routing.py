@@ -184,6 +184,33 @@ def normalize_attrs(attribute_dict : dict):
         new_dict[key] = value/max_val
     return new_dict
 
+def get_metrics(node_loads,old_graph):
+        ### Begin ChatGpt Copypasta
+        loads = np.array(list(node_loads.values()))
+        mean_load = np.mean(loads)
+        var_load = np.var(loads)
+        max_load = np.max(loads)
+        
+        # Entropie (normiert)
+        probabilities = loads / np.sum(loads)  # Wahrscheinlichkeitsverteilung der Lasten
+        entropy = -np.sum(probabilities * np.log(probabilities + 1e-10))  # Entropie ####1e-10 is added because small probabilities might get rounded to 0 and the log for 0 is undefined.
+        max_entropy = np.log(len(old_graph.nodes()))  # Maximale Entropie
+        normalized_entropy = entropy / max_entropy
+        
+        # Balancemetrik
+        balance_metric = max_load / mean_load
+        
+        # Ergebnisse
+        metrics = {
+            "node_loads": node_loads,
+            "mean_load": mean_load,
+            "var_load": var_load,
+            "max_load": max_load,
+            "normalized_entropy": normalized_entropy,
+            "balance_metric": balance_metric
+        }
+        return metrics
+
 if __name__ == "__main__":
     original_graph = rautenGraph()
 
@@ -214,13 +241,21 @@ if __name__ == "__main__":
     aspcum = nx.get_edge_attributes(new_graph, 'aspcum') #slightly better results than spcum maybe
     #spcum format: {(1, 2): 4.5, (2, 3): 3.0}
 
+    #calculate betweenness on edgebased graph via weight attribute
     btwn = nx.betweenness_centrality(new_graph,weight="weight")#similar to spcum
+    
     print("btwn" + str(btwn) )
-    btwn_transformed = {}
-    for node in original_graph.nodes:
-        nfrom, nto = original_node_2_transformed_edge(node)
-        btwn_transformed[node] = max(btwn[nfrom],btwn[nto])
+    
+    def transform_edgebased_to_nodebased_attributes(original_graph,attribute_dict):
+        nodebased_attribute_dict = {}
+        for node in original_graph.nodes:
+            nfrom, nto = original_node_2_transformed_edge(node)
+            nodebased_attribute_dict[node] = max(attribute_dict[nfrom],btwn[nto])
+
+    btwn_transformed = transform_edgebased_to_nodebased_attributes(original_graph,btwn)
     print(btwn_transformed)
+    
+    #Setze betweenness im nodeweighted_graph mit attribute_dict
     nx.set_node_attributes(original_graph,btwn_transformed,"btwn") #betweenness ist knotenbezogen -- no fix.
 
 
@@ -240,11 +275,35 @@ if __name__ == "__main__":
 
     ## apply transformed normalized dicts to original graph for plotting
     nx.set_node_attributes(original_graph,normalized_oldgraph_attr_aspcum,"aspcum")
+
     plot_oldgraph_with_any_attr_top_left(original_graph,"cumulative visits asp original graph", "aspcum", plot_options)
 
     plot_oldgraph_with_any_attr_top_left(original_graph,"betweenness original graph", "btwn", plot_options)
 
-    plt.show()
+    # SHOW PLOTS
+    #plt.show()
+
+
+    ###Calculate Metrics on loads (AllShortestPathVisits) 
+    node_loads = aspcum
+    metrics = get_metrics(node_loads,original_graph)
+    print(metrics)
+
+
+    
+    def apply_optimized_weights_on_attribute_dict_according_to_bussmeier(nodebased_betweenness_dict,constant):
+        # maybe also known as shortest-path-reweighting?
+        #braucht betweenness, constant
+        new_weights_attribute_dict = {}
+        for k,v in nodebased_betweenness_dict:
+            new_weight = constant * v
+            new_weights_attribute_dict[k] = new_weight
+        return new_weights_attribute_dict
+    
+    def do_experiment(constant,og,ng):
+        pass
+        
+
 
     
 #rücktransformiert
