@@ -1,4 +1,5 @@
 import os
+import random 
 import sys
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -27,6 +28,19 @@ def convert_graph_from_nodebased_to_edgebased(g:nx.DiGraph) -> nx.DiGraph:
 layout_iterations = 300
 layout_k = 0.5
 
+def random_connected_graph(num_nodes, min_weight=1, max_weight=100):
+    # Create a random directed graph
+    G = nx.gnm_random_graph(num_nodes, num_nodes * (num_nodes - 1) // 2, directed=True)
+
+    # Ensure the graph is connected
+    while not nx.is_weakly_connected(G):
+        G = nx.gnm_random_graph(num_nodes, num_nodes * (num_nodes - 1) // 2, directed=True)
+
+    # Assign random weights to the nodes
+    for node in G.nodes():
+        G.nodes[node]['weight'] = random.randint(min_weight, max_weight)  # Random weight for each node
+
+    return G
 
 
 
@@ -308,7 +322,7 @@ def get_metrics(node_loads,nodebased_graph):
        
         # Ergebnisse
         metrics = {
-            "node_loads": node_loads,
+            #"node_loads": node_loads,
             "mean_load": mean_load,
             "var_load": var_load,
             "max_load": max_load,
@@ -414,8 +428,8 @@ def apply_optimized_weights_on_attribute_dict_according_to_bussmeier(nodebased_b
     #braucht betweenness, constant
     new_weights_attribute_dict = {}
     for k,v in nodebased_betweenness_dict.items():
-        #new_weight = constant * v
-        new_weight = (1/v) * v
+        new_weight = constant * v
+        #new_weight = (1/v) * v
         new_weights_attribute_dict[k] = new_weight
     return new_weights_attribute_dict
     
@@ -494,16 +508,17 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph,r
 
 
 if __name__ == "__main__":
-    directed_nodeweighted_graph = rautenGraph()
-    print("original weights of graph G \n")
-    node_weights_dict = {node: data['weight'] for node, data in directed_nodeweighted_graph.nodes(data=True)}
-    print(node_weights_dict)
+    #directed_nodeweighted_graph = rautenGraph()
+    random_directed_nodeweighted_graph = random_connected_graph(100)
+    #print("original weights of graph G \n")
+    node_weights_dict = {node: data['weight'] for node, data in random_directed_nodeweighted_graph.nodes(data=True)}
+    #print(node_weights_dict)
     #plot_nodebasedgraph_with_weight_and_second_attr_in_red(directed_nodeweighted_graph,"original _weight","weight",plot_options)
     
-    altered_graph_nodebased, metrics_before_reweighting, metrics_after_reweighting = do_single_experiment_iteration(directed_nodeweighted_graph,100)
-    print("altered weights of graph G \n")
+    altered_graph_nodebased, metrics_before_reweighting, metrics_after_reweighting = do_single_experiment_iteration(random_directed_nodeweighted_graph,0.007)
+    #print("altered weights of graph G \n")
     node_weights_dict = {node: data['weight'] for node, data in altered_graph_nodebased.nodes(data=True)}
-    print(node_weights_dict)
+    #print(node_weights_dict)
 
     print("\n metrics before reweighting")
     pprint.pprint(metrics_before_reweighting)
