@@ -27,7 +27,7 @@ def convert_graph_from_nodebased_to_edgebased(g:nx.DiGraph) -> nx.DiGraph:
 
 layout_iterations = 300
 layout_k = 0.5
-
+'''
 def random_connected_graph(num_nodes, min_weight=1, max_weight=100):
     # Create a random directed graph
     G = nx.gnm_random_graph(num_nodes, num_nodes * (num_nodes - 1) // 2, directed=True)
@@ -41,7 +41,23 @@ def random_connected_graph(num_nodes, min_weight=1, max_weight=100):
         G.nodes[node]['weight'] = random.randint(min_weight, max_weight)  # Random weight for each node
 
     return G
+'''
 
+def random_connected_graph(num_nodes, mean_weight=50, std_dev=20):
+    # Create a random directed graph
+    G = nx.gnm_random_graph(num_nodes, num_nodes * (num_nodes - 1) // 2, directed=True)
+
+    # Ensure the graph is connected
+    while not nx.is_weakly_connected(G):
+        G = nx.gnm_random_graph(num_nodes, num_nodes * (num_nodes - 1) // 2, directed=True)
+
+    # Assign random weights with normal distribution
+    for node in G.nodes():
+        weight = int(np.random.normal(loc=mean_weight, scale=std_dev))
+        weight = max(weight, 1)  # Ensure the weight is at least 1 (you can adjust this as needed)
+        G.nodes[node]['weight'] = weight
+
+    return G
 
 
 def rautenGraph():
@@ -274,10 +290,10 @@ def get_metrics(node_loads,nodebased_graph):
         """  node_loads,mean,variance,max,normalized_entropy, balance """
 
         # Debug: Print the keys of the node_loads and nodes in the graph
-        print("Node values in node_loads dictionary:")
-        print(node_loads.values())  # List all node IDs in the dictionary
-        print("\nNode IDs in the graph (nodebased_graph):")
-        print(nodebased_graph.nodes())  # List all node IDs in the graph
+        #print("Node values in node_loads dictionary:")
+        #print(node_loads.values())  # List all node IDs in the dictionary
+        #print("\nNode IDs in the graph (nodebased_graph):")
+        #print(nodebased_graph.nodes())  # List all node IDs in the graph
 
         ### Begin ChatGpt Copypasta
         loads = np.array(list(node_loads.values()))
@@ -306,9 +322,9 @@ def get_metrics(node_loads,nodebased_graph):
         gini_coefficient = calculate_gini(loads)
         #gini_coefficient = gini_from_dict(data_dict = {i: val for i, val in enumerate(loads)})
 
-        gini_weight = 0.7
-        entropy_weight = 0.4
-        variance_weight = 0.5
+        gini_weight = 0.5
+        entropy_weight = 0.2
+        variance_weight = 0.3
 
         # normalise variance to be on the same scale as entropy and gini 
         normalized_var_load = var_load / max_load
@@ -456,8 +472,8 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph,r
         #calculate betweenness centrality on edgebased as load
         betweenness_edgebased_attrdict = nx.betweenness_centrality(graph_edgebased,weight="weight")#similar to spcum
         
-        print("\n betweenness centrality score of each node in edgebased graph (G^) based on edge weights")
-        pprint.pprint(betweenness_edgebased_attrdict)
+        #print("\n betweenness centrality score of each node in edgebased graph (G^) based on edge weights")
+        #pprint.pprint(betweenness_edgebased_attrdict)
 
         # reverse transform betweenness to nodebased (as dict) just for returning
         betweenness_nodebased = transform_edgebased_to_nodebased_attributes(graph_nodebased,betweenness_edgebased_attrdict)
@@ -493,11 +509,11 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph,r
     # apply rounding to the rather non-integer-like, very rational-like numbers of the reweighting function results.
     # think of a good way to estimate the places to round to or use the constant in bussmeier's function for this purpose
     new_weights_nodebased_attrdict_rounded = apply_rounding_to_nodebased_attrdict(new_weights_nodebased_attrdict_unrounded)
-    print("weights of graph G after bussmeiers formula, rounded")
-    pprint.pprint(new_weights_nodebased_attrdict_rounded)
+    #print("weights of graph G after bussmeiers formula, rounded")
+    #pprint.pprint(new_weights_nodebased_attrdict_rounded)
 
     # set new weights as weights on nodebased graph i.e. mutate the graph
-    nx.set_node_attributes(graph_nodebased,new_weights_nodebased_attrdict_rounded,"weight")
+    nx.set_node_attributes(graph_nodebased,new_weights_nodebased_attrdict_unrounded,"weight") #using unrounded since the weights are >1 using a small constant
 
     # set unrounded weight for fun, plotting and guesstimating
     nx.set_node_attributes(graph_nodebased,new_weights_nodebased_attrdict_unrounded,"unrounded_weight")
@@ -509,10 +525,10 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph,r
 
 if __name__ == "__main__":
     #directed_nodeweighted_graph = rautenGraph()
-    random_directed_nodeweighted_graph = random_connected_graph(100)
-    #print("original weights of graph G \n")
+    random_directed_nodeweighted_graph = random_connected_graph(1000, std_dev=10 ) #100 nodes, weight 0-1000
+    print("original weights of graph G \n")
     node_weights_dict = {node: data['weight'] for node, data in random_directed_nodeweighted_graph.nodes(data=True)}
-    #print(node_weights_dict)
+    print(node_weights_dict)
     #plot_nodebasedgraph_with_weight_and_second_attr_in_red(directed_nodeweighted_graph,"original _weight","weight",plot_options)
     
     altered_graph_nodebased, metrics_before_reweighting, metrics_after_reweighting = do_single_experiment_iteration(random_directed_nodeweighted_graph,0.007)
