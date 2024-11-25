@@ -497,11 +497,11 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph,r
     betweenness_nodebased, metrics_before_reweighting = calculate_load_and_get_metrics(original_graph_with_node_weights)
 
     print("weights before bussmeiers formula, unrounded")
-    pprint.pprint(betweenness_nodebased)
+    #pprint.pprint(betweenness_nodebased)
     # apply bussmeier's reweighting formula
     new_weights_nodebased_attrdict_unrounded = apply_optimized_weights_on_attribute_dict_according_to_bussmeier(betweenness_nodebased,reweighting_constant)
     print("weights after bussmeiers formula, unrounded")
-    pprint.pprint(new_weights_nodebased_attrdict_unrounded)
+    #pprint.pprint(new_weights_nodebased_attrdict_unrounded)
 
     # apply betweenness to nodebased_graph for plotting
     nx.set_node_attributes(graph_nodebased,betweenness_nodebased,"betweenness")
@@ -522,10 +522,73 @@ def do_single_experiment_iteration(original_graph_with_node_weights:nx.DiGraph,r
 
     return graph_nodebased, metrics_before_reweighting, metrics_after_reweighting
 
+# Store results in a dictionary for each (graph_size, std_dev) pair
+improvement_traffic_evenness_graph_size_and_node_weight_deviation = {}
+
+def run_experiment():
+    # Define the range of standard deviations and graph sizes
+    std_devs = [100, 500, 1000]  # Standard deviations from 0.1 to 2.0
+    graph_sizes = [50, 100, 200, 500, 1000]    # Graph sizes of 50, 100, 200, and 400 nodes
+
+
+
+    for graph_size in graph_sizes:
+        for std_dev in std_devs:
+            print(f"Running experiment with graph size {graph_size} and std_dev {std_dev}...")
+            
+            # Create a graph of the specified size
+            graph = random_connected_graph(graph_size, std_dev=std_dev)
+
+            # Run the single experiment
+            reweighting_constant = 0.007  # You can adjust the constant for your formula
+            graph_nodebased, metrics_before, metrics_after = do_single_experiment_iteration(graph, reweighting_constant)
+            
+            # Extract traffic evenness from metrics
+            traffic_evenness_before = metrics_before['traffic_evenness']
+            traffic_evenness_after = metrics_after['traffic_evenness']
+            
+            # Store the results for analysis
+            improvement_traffic_evenness_graph_size_and_node_weight_deviation[(graph_size, std_dev)] = traffic_evenness_after-traffic_evenness_before
+            
+            print(f"Traffic Evenness Before: {traffic_evenness_before:.4f}")
+            print(f"Traffic Evenness After: {traffic_evenness_after:.4f}")
+pprint.pprint(improvement_traffic_evenness_graph_size_and_node_weight_deviation)
+            
+def plot_results():
+    # Define the standard deviations and graph sizes from the dictionary
+    std_devs = [10, 100, 500]  # Standard deviations tested
+    graph_sizes = [50, 100, 200, 400]  # Graph sizes tested
+
+    # Create a figure for the plot
+    plt.figure(figsize=(10, 6))
+
+    # Loop over each graph size and plot the results for each standard deviation
+    for graph_size in graph_sizes:
+        # Extract the improvements for the current graph size
+        improvements = []
+        for std_dev in std_devs:
+            improvement = improvement_traffic_evenness_graph_size_and_node_weight_deviation.get((graph_size, std_dev), None)
+            if improvement is not None:
+                improvements.append(improvement)
+        
+        # Plot the line for the current graph size
+        plt.plot(std_devs, improvements, label=f'Graph Size {graph_size}', marker='o')
+
+    # Add labels, title, and legend to the plot
+    plt.title('Traffic Evenness Improvement by Graph Size and Standard Deviation')
+    plt.xlabel('Standard Deviation')
+    plt.ylabel('Traffic Evenness Improvement')
+    plt.legend(title='Graph Sizes')
+    plt.grid(True)
+
+    # Show the plot
+    plt.show()
+
 
 if __name__ == "__main__":
+    '''
     #directed_nodeweighted_graph = rautenGraph()
-    random_directed_nodeweighted_graph = random_connected_graph(1000, std_dev=10 ) #100 nodes, weight 0-1000
+    random_directed_nodeweighted_graph = random_connected_graph(200, std_dev=300 ) #100 nodes, weight 0-1000
     print("original weights of graph G \n")
     node_weights_dict = {node: data['weight'] for node, data in random_directed_nodeweighted_graph.nodes(data=True)}
     print(node_weights_dict)
@@ -545,9 +608,12 @@ if __name__ == "__main__":
     #plot_nodebasedgraph_with_weight_and_second_attr_in_red(altered_graph_nodebased,"reweighted once _unrounded_weight","unrounded_weight",plot_options)
     #plot_nodebasedgraph_with_weight_and_second_attr_in_red(altered_graph_nodebased,"reweighted once _betweenness","betweenness",plot_options)
     plt.show()
-        
+    '''
 
+    #run_experiment()
+    #plot_results()    
 
+    pprint.pprint(improvement_traffic_evenness_graph_size_and_node_weight_deviation)
     
 #rücktransformiert
 # als dict
