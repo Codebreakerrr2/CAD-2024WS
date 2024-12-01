@@ -6,7 +6,14 @@
   <component name="ChangeListManager">
     <list default="true" id="0097a384-16cc-4e50-9e75-70223781d764" name="Changes" comment="visualisierung für viele n und p und templates wurde hinzugefügt">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/drittes_praktikum/routing.py" beforeDir="false" afterPath="$PROJECT_DIR$/drittes_praktikum/routing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/erstes_praktikum/minimale_distance_in_RG.py" beforeDir="false" afterPath="$PROJECT_DIR$/erstes_praktikum/minimale_distance_in_RG.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/chapters/first_chapter.tex" beforeDir="false" afterPath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/chapters/first_chapter.tex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/termpaper.aux" beforeDir="false" afterPath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/termpaper.aux" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/termpaper.log" beforeDir="false" afterPath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/termpaper.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/termpaper.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/termpaper.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/termpaper.toc" beforeDir="false" afterPath="$PROJECT_DIR$/erstes_praktikum/template-termpaper/template/termpaper.toc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zweites_praktikum/random_walk.py" beforeDir="false" afterPath="$PROJECT_DIR$/zweites_praktikum/random_walk.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,7 +41,10 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Python.lk.executor&quot;: &quot;Run&quot;,
     &quot;Python.minimale_distance_in_RG.executor&quot;: &quot;Run&quot;,
+    &quot;Python.random_walk.executor&quot;: &quot;Run&quot;,
+    &quot;Python.routing.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
@@ -68,7 +78,12 @@
       <option name="presentableId" value="Default" />
       <updated>1728749169809</updated>
       <workItem from="1728749178971" duration="13775000" />
-      <workItem from="1729956950255" duration="18029000" />
+      <workItem from="1729956950255" duration="20062000" />
+      <workItem from="1730372997193" duration="15123000" />
+      <workItem from="1730811082202" duration="6830000" />
+      <workItem from="1731517964487" duration="10984000" />
+      <workItem from="1732547568022" duration="600000" />
+      <workItem from="1733072400084" duration="4314000" />
     </task>
     <task id="LOCAL-00001" summary="first coommit">
       <option name="closed" value="true" />
@@ -110,7 +125,23 @@
       <option name="project" value="LOCAL" />
       <updated>1730117769801</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="visualisierung für viele n und p und templates wurde hinzugefügt">
+      <option name="closed" value="true" />
+      <created>1730184393846</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1730184393846</updated>
+    </task>
+    <task id="LOCAL-00007" summary="visualisierung für viele n und p und templates wurde hinzugefügt">
+      <option name="closed" value="true" />
+      <created>1730184813446</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1730184813446</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -124,6 +155,9 @@
     <option name="LAST_COMMIT_MESSAGE" value="visualisierung für viele n und p und templates wurde hinzugefügt" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/2025$minimale_distance_in_RG.coverage" NAME="minimale_distance_in_RG Coverage Results" MODIFIED="1730183827380" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/erstes_praktikum" />
+    <SUITE FILE_PATH="coverage/2025$random_walk.coverage" NAME="random_walk Coverage Results" MODIFIED="1730811120980" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/zweites_praktikum" />
+    <SUITE FILE_PATH="coverage/2025$routing.coverage" NAME="routing Coverage Results" MODIFIED="1733076666929" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/drittes_praktikum" />
+    <SUITE FILE_PATH="coverage/2025$minimale_distance_in_RG.coverage" NAME="minimale_distance_in_RG Coverage Results" MODIFIED="1730822542946" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/erstes_praktikum" />
+    <SUITE FILE_PATH="coverage/2025$lk.coverage" NAME="lk Coverage Results" MODIFIED="1732286818020" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

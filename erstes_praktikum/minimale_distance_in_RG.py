@@ -98,7 +98,7 @@ def plot_results(results, n_values, p_values):
 
 # Definiere Werte für n und p
 n_values = list(range(5, 1000, 20))  # Anzahl der Knoten von 50 bis 1000 in Schritten von 50
-p_values = [i /20.0 for i in range(1, 21)]  # Werte von 0.1 bis 1.0 in Schritten von 0.1
+p_values = [i /10.0 for i in range(1, 11)]  # Werte von 0.1 bis 1.0 in Schritten von 0.1
 
 # Führe die Statistiken für unterschiedliche Werte von n und p durch
 results = try_different_n_p_statics(n_values, p_values)

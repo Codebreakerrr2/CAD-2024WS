@@ -164,7 +164,8 @@ def plot_nodebasedgraph_with_weight_and_second_attr_in_red(original_graph,title,
     #plt.savefig(attr_to_draw + ".png")
     
     #plt.show()
-    
+
+
 
 
 def original_node_2_transformed_edge(nodeid) -> tuple:
@@ -614,7 +615,72 @@ if __name__ == "__main__":
     #plot_results()    
 
     pprint.pprint(improvement_traffic_evenness_graph_size_and_node_weight_deviation)
-    
+
+
+    def experiment_for_line_plots(graph_sizes, c_values, std_dev):
+        """
+        Führt Experimente für verschiedene Graphgrößen und c-Werte durch, bei festgelegter Standardabweichung.
+        Gibt die Ergebnisse als Dictionary zurück.
+        """
+        results = {}  # Ergebnisse: {(graph_size, c): improvement}
+
+        for graph_size in graph_sizes:
+            for c in c_values:
+                print(f"Running experiment for graph_size={graph_size}, std_dev={std_dev}, c={c}...")
+                # Generiere zufälligen Graphen mit fester Standardabweichung
+                graph = random_connected_graph(graph_size, std_dev=std_dev)
+
+                # Führe eine Iteration des Experiments mit aktuellem c-Wert durch
+                _, metrics_before, metrics_after = do_single_experiment_iteration(graph, c)
+
+                # Speichere die Verbesserung der Traffic Evenness
+                improvement = metrics_after['traffic_evenness'] - metrics_before['traffic_evenness']
+                results[(graph_size, c)] = improvement
+
+        return results
+
+
+    def plot_line_graphs(results, graph_sizes, c_values):
+        """
+        Plottet Liniendiagramme für verschiedene Knotenanzahlen und c-Werte,
+        wobei die X-Achse die tatsächlichen c-Werte darstellt.
+        """
+        plt.figure(figsize=(10, 6))
+
+        for graph_size in graph_sizes:
+            # Extrahiere die Ergebnisse für diese Graphgröße
+            improvements = [results.get((graph_size, c), 0) for c in c_values]
+
+            # Plotte eine Linie für diese Graphgröße
+            plt.plot(c_values, improvements, marker='o', label=f"Graph Size: {graph_size}")
+
+        # Diagramm-Details
+        plt.title("Impact of c-Values on Traffic Evenness Improvement")
+        plt.xlabel("c Values")
+        plt.ylabel("Traffic Evenness Improvement")
+        plt.xscale('log')  # Logarithmische Skalierung für bessere Darstellung kleiner c-Werte
+        plt.xticks(c_values, labels=[str(c) for c in c_values])  # Beschriftung der X-Achse
+        plt.legend(title="Graph Sizes")
+        plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+        plt.show()
+
+
+    def run_line_plot_experiment():
+        # Parameter definieren
+        graph_sizes = [50, 100, 200, 400]  # Verschiedene Graphgrößen
+        c_values = [50,20,10,1,0.1,0.01,0.001,0.0001,0.00001]  # Verschiedene c-Werte
+        std_dev = 300  # Fixierte Standardabweichung
+
+        # Experiment durchführen
+        results = experiment_for_line_plots(graph_sizes, c_values, std_dev)
+
+        # Ergebnisse visualisieren
+        plot_line_graphs(results, graph_sizes, c_values)
+
+
+    if __name__ == "__main__":
+        run_line_plot_experiment()
+
 #rücktransformiert
 # als dict
 # von nx.betweenness() rücktransformieren als value:attr-paar-liste
