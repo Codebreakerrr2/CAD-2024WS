@@ -114,8 +114,8 @@ def calculate_epl_for_n_values(n_values, p):
 
 # Stützstellen für n und p-Wert
 #n_values = [100,300,500,1000,3000,5000,7000,10000,15000,20000]
-n_values = [100,300,500,1000,3000,5000]
-n_values = [100,200,300,400]#,1000]#,3000,5000]
+n_values = [100,300,400,500]#,1000,3000,5000]
+#n_values = [100,200,300,400]#,1000]#,3000,5000]
 p = 0.05
 
 # Berechne E[L] für Stützstellen
@@ -149,6 +149,7 @@ plt.grid()
 #plt.plot(n_values, epl_values, 'o', label="Stützstellen (berechnete Werte)")
 #plt.plot(n_values, epl_k7, '-', label="k7")
 plt.show()
+plt.savefig(f"smallworld_interpoliert.png")
 
 for n in n_values:  # Directly iterate over the n_values
     # Get the length distribution for the specific n (which is a dictionary of {path_length: frequency})
@@ -166,6 +167,7 @@ for n in n_values:  # Directly iterate over the n_values
     plt.title(f"Verteilung der Pfadlängen für n = {n}")
     plt.grid(axis='y', linestyle='--', color='gray')
     plt.show()
+    plt.savefig(f"smallworld_n{n}.png")
 
 
 plt.figure(figsize=(8, 5))
@@ -175,3 +177,4 @@ plt.ylabel("f(7)")
 plt.title("Verteilung von f(7) über Graphen mit verschiedenen n")
 plt.grid(axis='y', linestyle='--', color='gray')
 plt.show()
+plt.savefig(f"smallworld_f7.png")
