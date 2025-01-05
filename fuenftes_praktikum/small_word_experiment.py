@@ -73,7 +73,7 @@ def expected_path_length(n, p):
     k_threshold = n-1
 
 
-    anteil_fuer_k7 = berechne_anteil_pfade_mit_laenge_k(n, 1, length_distribution)
+    #anteil_fuer_k7 = berechne_anteil_pfade_mit_laenge_k(n, k, length_distribution)
 
     for k in range(k_threshold+1):
         anteil_pfade_mit_laenge_k[k] = berechne_anteil_pfade_mit_laenge_k(n, k, length_distribution)
@@ -81,7 +81,8 @@ def expected_path_length(n, p):
 
     # Erwartete Pfadlänge berechnen
     E_L = sum(k * anteil for k, anteil in anteil_pfade_mit_laenge_k.items())
-    return E_L, anteil_fuer_k7, length_distribution
+    #return E_L, anteil_fuer_k7, length_distribution
+    return E_L, anteil_pfade_mit_laenge_k[7], length_distribution
 
 
 def calculate_epl_for_n_values(n_values, p):
@@ -149,22 +150,28 @@ plt.grid()
 #plt.plot(n_values, epl_k7, '-', label="k7")
 plt.show()
 
-for n in enumerate(n_values):
+for n in n_values:  # Directly iterate over the n_values
+    # Get the length distribution for the specific n (which is a dictionary of {path_length: frequency})
+    dist = length_distribution[n]
+    
+    # Extract path lengths (x-axis) and their corresponding frequencies (y-axis)
+    path_lengths = list(dist.keys())
+    frequencies = list(dist.values())
+    
+    # Create the plot for the current n
     plt.figure(figsize=(8, 5))
-    plt.plot(n_values, length_distribution[n])
+    plt.bar(path_lengths, frequencies, width=0.5)  # Using bar plot for discrete distribution
     plt.xlabel("Pfadlänge")
     plt.ylabel("Häufigkeit")
     plt.title(f"Verteilung der Pfadlängen für n = {n}")
-    plt.legend()
-    plt.grid()
+    plt.grid(axis='y', linestyle='--', color='gray')
     plt.show()
 
-plt.figure(figsize=(10, 6))
-for i, n in enumerate(n_values):
-    plt.hist(epl_k7[i], bins=30, alpha=0.7, label=f"n = {n}")
-plt.xlabel("E[L] k7-Werte")
-plt.ylabel("Häufigkeit")
-plt.title("Verteilung der EPL k7-Werte für alle n")
-plt.legend()
-plt.grid()
+
+plt.figure(figsize=(8, 5))
+plt.plot(n_values, epl_k7, marker='o', linestyle='-', color='b')  # Plot n_values on x-axis and epl_k7 on y-axis
+plt.xlabel("Anzahl der Knoten (n)")
+plt.ylabel("f(7)")
+plt.title("Verteilung von f(7) über Graphen mit verschiedenen n")
+plt.grid(axis='y', linestyle='--', color='gray')
 plt.show()
