@@ -6,6 +6,7 @@ from scipy.interpolate import interp1d
 from datetime import datetime
 import itertools
 import time
+from sys import getsizeof
 
 def calculate_shortest_path_distribution(graph):
     """
@@ -20,15 +21,18 @@ def calculate_shortest_path_distribution(graph):
     """
     #nx.average_shortest_path_length(graph)
 
-    node_pairs = list(itertools.combinations(graph.nodes(), 2))
+
     #print("node_pairs")
     #print(node_pairs)
 
     full_length_distribution = dict(nx.shortest_path_length(graph))
 
+    # node_pairs after to save memory. better yet use as iterator without making list.
+    # node_pairs = list(itertools.combinations(graph.nodes(), 2))
+
     length_distribution = {}
 
-    for source, target in node_pairs:
+    for source, target in itertools.combinations(graph.nodes(), 2):
         #print("s: ", source , " t: ", target)
         length = full_length_distribution[source][target]
 
@@ -114,6 +118,7 @@ def calculate_epl_for_n_values(n_values, p):
         starttime = time.time()
         epl, anteil_fuer_k7, length_distribution = expected_path_length(n, p)
         end = time.time()
+        print(f"lenDistSize: {getsizeof(length_distribution)}")
         print(f"time for n = {n} : {end - starttime}")
         epl_values.append(epl)
         epl_k7.append(anteil_fuer_k7)
@@ -123,7 +128,7 @@ def calculate_epl_for_n_values(n_values, p):
 
 # Stützstellen für n und p-Wert
 #n_values = [100,300,500,1000,3000,5000,7000,10000,15000,20000]
-n_values = [100,300,500,1000,3000,5000,7000,10000,15000,20000]
+n_values = [100,300,500,1000,3000,5000,7000,10000]#,15000,20000]
 #n_values = [100,300,400,500]#,1000,3000,5000]
 #n_values = [100,200,300,400]#,1000]#,3000,5000]
 p = 0.05
@@ -164,11 +169,11 @@ plt.savefig(f"smallworld_interpoliert.png")
 for n in n_values:  # Directly iterate over the n_values
     # Get the length distribution for the specific n (which is a dictionary of {path_length: frequency})
     dist = length_distribution[n]
-    
+
     # Extract path lengths (x-axis) and their corresponding frequencies (y-axis)
     path_lengths = list(dist.keys())
     frequencies = list(dist.values())
-    
+
     # Create the plot for the current n
     plt.figure(figsize=(8, 5))
     plt.bar(path_lengths, frequencies, width=0.5)  # Using bar plot for discrete distribution
