@@ -86,32 +86,35 @@ def calculate_elp_for_n_values(n_values,k, p):
 
 
 def run_experiment_for_k_values(n_values, k_values, p):
-    # Berechne E[L] für Stützstellen
-    n_values, elp_values = calculate_elp_for_n_values(n_values, k, p)
+    for K in k_values:
+        print(f"K: {K}")
+        # Berechne E[L] für Stützstellen
+        n_values, elp_values = calculate_elp_for_n_values(n_values, K, p)
 
-    # Interpolation der Werte
-    interpolation_function = interp1d(n_values, elp_values, kind='cubic',
-                                      fill_value='extrapolate')  # Spline-Interpolation
-    n_fine = np.linspace(min(n_values), max(n_values), 100)  # Feine Aufteilung der n-Werte
-    elp_interpolated = interpolation_function(n_fine)
+        # Interpolation der Werte
+        interpolation_function = interp1d(n_values, elp_values, kind='cubic',
+                                          fill_value='extrapolate')  # Spline-Interpolation
+        n_fine = np.linspace(min(n_values), max(n_values), 100)  # Feine Aufteilung der n-Werte
+        elp_interpolated = interpolation_function(n_fine)
 
-    # Plot der Ergebnisse
-    plt.figure(figsize=(10, 6))
-    plt.plot(n_values, elp_values, 'o', label="Stützstellen (berechnete Werte)")
-    plt.plot(n_fine, elp_interpolated, '-', label="Interpolierte Werte")
-    plt.xlabel("n (Anzahl der Knoten)")
-    plt.ylabel("E[L] (Erwartete Pfadlänge)")
-    plt.title(f"Erwartete Pfadlänge E[L] für p = {p}, k = {k}")
-    plt.legend()
-    plt.grid()
-    plt.show()
-    plt.savefig(f"small_world_k{k}")
+        # Plot der Ergebnisse
+        plt.figure(figsize=(10, 6))
+        plt.plot(n_values, elp_values, 'o', label="Stützstellen (berechnete Werte)")
+        plt.plot(n_fine, elp_interpolated, '-', label="Interpolierte Werte")
+        plt.xlabel("n (Anzahl der Knoten)")
+        plt.ylabel("E[L] (Erwartete Pfadlänge)")
+        plt.title(f"Erwartete Pfadlänge E[L] für p = {p}, K = {K}")
+        plt.legend()
+        plt.grid()
+        plt.show()
+        plt.savefig(f"small_world_k{k}")
 
 
 # Stützstellen für n und p-Wert
 n_values = [100,300,500,1000,3000,5000,7000,10000,15000,20000]
 #n_values = [100,200,300,400,600]#500,1000,3000,5000,7000,10000,15000,20000]
-k_values = [20, 50, 100]
+#k_values = [20, 50, 100]
+k_values = [20, 50]
 p = 0.05
 k = 100
 
