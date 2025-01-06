@@ -44,7 +44,8 @@ def calculate_shortest_path_distribution(graph):
             length_distribution[length] = 1
     #print(length_distribution)
     #print(len(node_pairs))
-    return length_distribution, len(node_pairs)
+    n = len(graph)
+    return length_distribution, graph.number_of_edges()
 
 
 def berechne_anteil_pfade_mit_laenge_k(n, k, length_distribution):
