@@ -5,6 +5,7 @@ from collections import Counter
 from scipy.interpolate import interp1d
 import itertools
 from datetime import datetime
+from scipy.optimize import curve_fit
 
 def calculate_shortest_path_distribution(graph):
     """
@@ -85,6 +86,15 @@ def calculate_elp_for_n_values(n_values,k, p):
     return n_values, elp_values
 
 
+def logistic(x, L, x0, k):
+    """
+    Logistic function
+    L  : the curve's maximum value
+    x0 : the x-value of the sigmoid's midpoint
+    k  : the steepness of the curve
+    """
+    return L / (1 + np.exp(-k * (x - x0)))
+
 def run_experiment_for_k_values(n_values, k_values, p):
     for K in k_values:
         print(f"K: {K}")
@@ -97,10 +107,32 @@ def run_experiment_for_k_values(n_values, k_values, p):
         n_fine = np.linspace(min(n_values), max(n_values), 100)  # Feine Aufteilung der n-Werte
         elp_interpolated = interpolation_function(n_fine)
 
+        # logistische regression
+        x = np.array(n_values)
+        y = np.array(elp_values)
+
+        # y=a×ln(x−c)+b.
+        popt, pcov = curve_fit(lambda t, a, b, c: a * np.log(t - c) + b, x, y)
+        # a = popt[0]
+        # b = popt[1]
+        # c = popt[2]
+        a,b,c = popt
+
+        million = 1000000
+        milliarde = 1000000000
+        x_fitted = np.append(x,[10000,million,100*million,200*million,300*million,400*million,500*million,600*million,700*million,800*million,900*million,milliarde,2*milliarde,3*milliarde,4*milliarde,5*milliarde,6*milliarde,7*milliarde,8*milliarde])
+
+        y_fitted = a * np.log(x_fitted - c) + b
+
+
+
+
+
         # Plot der Ergebnisse
         plt.figure(figsize=(10, 6))
         plt.plot(n_values, elp_values, 'o', label="Stützstellen (berechnete Werte)")
         plt.plot(n_fine, elp_interpolated, '-', label="Interpolierte Werte")
+        plt.plot(x_fitted, y_fitted, 'k', label='Fitted curve')
         plt.xlabel("n (Anzahl der Knoten)")
         plt.ylabel("E[L] (Erwartete Pfadlänge)")
         plt.title(f"Erwartete Pfadlänge E[L] für p = {p}, K = {K}")
@@ -111,10 +143,11 @@ def run_experiment_for_k_values(n_values, k_values, p):
 
 
 # Stützstellen für n und p-Wert
-n_values = [100,300,500,1000,3000,5000,7000,10000,15000,20000]
-#n_values = [100,200,300,400,600]#500,1000,3000,5000,7000,10000,15000,20000]
+#n_values = [100,300,500,1000,3000,5000,7000,10000,15000,20000]
+n_values = [100,200,300,400,600]#500,1000,3000,5000,7000,10000,15000,20000]
+n_values = [200,400,600,1000,3000,5000]#,7000,10000,15000,20000]
 #k_values = [20, 50, 100]
-k_values = [20, 50]
+k_values = [200]
 p = 0.05
 k = 100
 
