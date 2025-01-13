@@ -108,19 +108,27 @@ def run_experiment_for_k_values(n_values, k_values, p):
         elp_interpolated = interpolation_function(n_fine)
 
         # logistische regression
+        # https://rowannicholls.github.io/python/mathematics/curve_fitting/logarithmic.html
         x = np.array(n_values)
         y = np.array(elp_values)
 
         # y=a×ln(x−c)+b.
+        a_guess, b_guess, c_guess = (0.3639904977922878, -0.5418974546974686, 59.47082558388058)
+        #popt, pcov = curve_fit(lambda t, a, b, c: a * np.log(t - c) + b, x, y,p0=(a_guess,b_guess,c_guess))
         popt, pcov = curve_fit(lambda t, a, b, c: a * np.log(t - c) + b, x, y)
         # a = popt[0]
         # b = popt[1]
         # c = popt[2]
         a,b,c = popt
+        print("(", a, ",", b, ",", c, ")")
 
+        hk = 100000
         million = 1000000
         milliarde = 1000000000
-        x_fitted = np.append(x,[10000,million,100*million,200*million,300*million,400*million,500*million,600*million,700*million,800*million,900*million,milliarde,2*milliarde,3*milliarde,4*milliarde,5*milliarde,6*milliarde,7*milliarde,8*milliarde])
+        x_fitted = np.append(x,[10000])
+        x_fitted = np.append(x_fitted,[1*hk,2*hk,3*hk,4*hk,5*hk,6*hk,7*hk,8*hk,9*hk])
+        x_fitted = np.append(x_fitted,[million,100*million,200*million,300*million,400*million,500*million,600*million,700*million,800*million,900*million])
+        x_fitted = np.append(x_fitted,[milliarde,2*milliarde,3*milliarde,4*milliarde,5*milliarde,6*milliarde,7*milliarde,8*milliarde])
 
         y_fitted = a * np.log(x_fitted - c) + b
 
@@ -132,22 +140,45 @@ def run_experiment_for_k_values(n_values, k_values, p):
         plt.figure(figsize=(10, 6))
         plt.plot(n_values, elp_values, 'o', label="Stützstellen (berechnete Werte)")
         plt.plot(n_fine, elp_interpolated, '-', label="Interpolierte Werte")
-        plt.plot(x_fitted, y_fitted, 'k', label='Fitted curve')
+        plt.plot(x_fitted, y_fitted, 'm--', label='Logistic Regression')
+
+        #plt.aspect('auto') ##### needed for set_xlim to work
+        #plt.set_xlim(xmin=0.0, xmax=20000)
+        plt.ylim((0.0,8))
+        plt.xlim((0.0, 20000))
+        #plt.set_xbound(lower=0.0, upper=20000)
         plt.xlabel("n (Anzahl der Knoten)")
         plt.ylabel("E[L] (Erwartete Pfadlänge)")
         plt.title(f"Erwartete Pfadlänge E[L] für p = {p}, K = {K}")
         plt.legend()
         plt.grid()
-        plt.show()
         plt.savefig(f"small_world_k{k}")
+        plt.show()
+
+        # Plot der Ergebnisse
+        plt.figure(figsize=(10, 6))
+        plt.plot(n_values, elp_values, 'o', label="Stützstellen (berechnete Werte)")
+        #plt.plot(n_fine, elp_interpolated, '-', label="Interpolierte Werte")
+        #plt.plot(x_fitted, y_fitted, 'o', label="Extrapolierte Stützstellen (logistische Regression) ")
+        plt.plot(x_fitted, y_fitted, 'm--', label='Extrapolierte Kurve (logistische Regression)')
+        plt.xlabel("n (Anzahl der Knoten)")
+        plt.ylabel("E[L] (Erwartete Pfadlänge)")
+        plt.title(f"Erwartete Pfadlänge E[L] für p = {p}, K = {K}")
+        plt.legend()
+        plt.grid()
+        plt.savefig(f"small_world_k{k}_extrapolated")
+        plt.show()
 
 
 # Stützstellen für n und p-Wert
 #n_values = [100,300,500,1000,3000,5000,7000,10000,15000,20000]
-n_values = [100,200,300,400,600]#500,1000,3000,5000,7000,10000,15000,20000]
-n_values = [200,400,600,1000,3000,5000]#,7000,10000,15000,20000]
-#k_values = [20, 50, 100]
-k_values = [200]
+n_values = [200,300,500,1000,3000,5000,7000,10000,15000,20000]
+#n_values = [100,200,300,400,600]#500,1000,3000,5000,7000,10000,15000,20000]
+#n_values = [200,300,400,600,1000]#,3000,5000,7000,10000,15000,20000]
+#n_values = [200,400,600,1000,3000,5000]#,7000,10000,15000,20000]
+k_values = [20, 50, 100]
+k_values = [50, 100, 150]
+#k_values = [150]
 p = 0.05
 k = 100
 
